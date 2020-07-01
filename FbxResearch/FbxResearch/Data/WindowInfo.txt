@@ -1,0 +1,4 @@
+// ウィンドウ名.
+#WindowTitle,FbxResearch
+// APP名.
+#AppName,FBX
