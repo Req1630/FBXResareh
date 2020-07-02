@@ -202,6 +202,7 @@ void CMain::Update()
 			m_pCamera->GetProjMatrix() );
 	}
 
+
 	// 描画クラスとモデルクラスを別々の場合の描画.
 	{
 		m_FbxModel->SetPosition( { 1.0f, 0.0f, 0.0f } );
