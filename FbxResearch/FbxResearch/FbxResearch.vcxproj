@@ -71,11 +71,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\x86\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2019.0\lib\vs2015\x86\release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2018.0\lib\vs2015\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -127,10 +127,12 @@
     <ClCompile Include="SourceCode\Camera\Camera.cpp" />
     <ClCompile Include="SourceCode\Direct11\D3DX11.cpp" />
     <ClCompile Include="SourceCode\Direct11\TextuerLoader\WICTextureLoader.cpp" />
-    <ClCompile Include="SourceCode\FbxMesh\FbxAnimationController.cpp" />
+    <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationController.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationLoader.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxInclude\FbxInclude.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxMesh.cpp" />
+    <ClCompile Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.cpp" />
+    <ClCompile Include="SourceCode\FbxMesh\FbxModel\FbxModel.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.cpp" />
     <ClCompile Include="SourceCode\ImGui\imgui.cpp" />
     <ClCompile Include="SourceCode\ImGui\ImGuiManager\ImGuiManager.cpp" />
@@ -151,12 +153,14 @@
     <ClInclude Include="SourceCode\Direct11\AlignedAllocationPolicy\AlignedAllocationPolicy.h" />
     <ClInclude Include="SourceCode\Direct11\D3DX11.h" />
     <ClInclude Include="SourceCode\Direct11\TextuerLoader\WICTextureLoader.h" />
-    <ClInclude Include="SourceCode\FbxMesh\FbxAnimationController.h" />
-    <ClInclude Include="SourceCode\FbxMesh\FbxAnimationData.h" />
+    <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationController.h" />
+    <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationData.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationLoader.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxInclude\FbxInclude.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxMesh.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxMeshData.h" />
+    <ClInclude Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.h" />
+    <ClInclude Include="SourceCode\FbxMesh\FbxModel\FbxModel.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.h" />
     <ClInclude Include="SourceCode\Global.h" />
     <ClInclude Include="SourceCode\ImGui\imconfig.h" />

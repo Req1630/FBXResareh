@@ -9,9 +9,9 @@
 #include <set>
 
 #include "FbxMeshData.h"
-#include "FbxAnimationData.h"
 #include "FbxAnimation/FbxAnimationLoader.h"
-#include "FbxAnimationController.h"
+
+class CFbxAnimationController;
 
 /***********************************
 *	FBXモデルクラス.
@@ -72,6 +72,11 @@ public:
 	void Destroy();
 
 	//-----------------------------------------.
+	//			モデルの読み込み.
+	//-----------------------------------------.
+	HRESULT LoadModel( const char* fileName );
+
+	//-----------------------------------------.
 	//				描画.
 	//-----------------------------------------.
 	void Render( const DirectX::XMMATRIX& view, 
@@ -86,11 +91,7 @@ public:
 	DirectX::XMMATRIX GetWorldMatrix();
 
 	// アニメーションコントローラーの取得.
-	CFbxAnimationController GetAnimationController()
-	{
-		if( m_pAc != nullptr ) return *m_pAc;
-		return CFbxAnimationController();
-	}
+	CFbxAnimationController GetAnimationController();
 
 	//-----------------------------------------.
 	//			パラメータ設定系.
@@ -105,17 +106,9 @@ public:
 	void SetScale( const float& scale ){ m_Scale = { scale, scale, scale }; }
 
 	// アニメーション速度の設定.
-	void SetAnimSpeed( const double& speed )
-	{
-		if( m_pAc == nullptr ) return;
-		m_pAc->SetAnimSpeed( speed );
-	}
+	void SetAnimSpeed( const double& speed );
 	// アニメーション速度の設定.
-	void ChangeAnimation( int& index )
-	{
-		if( m_pAc == nullptr ) return;
-		m_pAc->ChangeAnimation( index );
-	}
+	void ChangeAnimation( int& index );
 
 private:
 	//-----------------------------------------.

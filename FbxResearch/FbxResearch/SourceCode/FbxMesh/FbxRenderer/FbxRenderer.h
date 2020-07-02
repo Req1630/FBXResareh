@@ -2,15 +2,9 @@
 
 #include "..\..\Global.h"
 #include "..\FbxMeshData.h"
-#include "..\FbxAnimationController.h"
 
-class CFbxModel
-{
-public:
-	std::vector<FBXMeshData> m_MeshData;
-	std::map<std::string, ID3D11ShaderResourceView*> m_Textures;	// テクスチャリスト.
-	CFbxAnimationController* m_pAc;	// アニメーションコントローラー.
-};
+class CFbxModel;
+class CFbxAnimationController;
 
 class CFbxRenderer
 {
@@ -57,10 +51,20 @@ public:
 	~CFbxRenderer();
 
 	//-----------------------------------------.
+	//				作成.
+	//-----------------------------------------.
+	HRESULT Create( ID3D11DeviceContext* pContext11 );
+
+	//-----------------------------------------.
+	//				破壊.
+	//-----------------------------------------.
+	void Destroy();
+
+	//-----------------------------------------.
 	//				描画.
 	//-----------------------------------------.
 	void Render(
-		CFbxModel mdoel,
+		CFbxModel& mdoel,
 		const DirectX::XMMATRIX& view, 
 		const DirectX::XMMATRIX& proj,
 		CFbxAnimationController* pAc = nullptr );
@@ -68,7 +72,7 @@ public:
 private:
 	// アニメーション用の行列計算.
 	void AnimMatrixCalculation( 
-		CFbxModel mdoel,
+		CFbxModel& mdoel,
 		const int& meahNo, 
 		FBXMeshData& meshData, 
 		CFbxAnimationController* pAc );

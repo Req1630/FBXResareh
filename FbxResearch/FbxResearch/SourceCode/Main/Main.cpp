@@ -7,12 +7,17 @@
 #include "..\Global.h"
 #include "..\Utility\FileManager\FileManager.h"
 #include "..\Utility\FrameRate\FrameRate.h"
-#include "..\FbxMesh\FbxAnimationData.h"
+#include "..\FbxMesh\FbxAnimation\FbxAnimationController.h"
 #include "..\FbxMesh\FbxAnimation\FbxAnimationLoader.h"
+#include "..\FbxMesh\FbxMesh.h"
 
 #include "..\Camera\Camera.h"
 
 #include "..\ImGui\ImGuiManager\ImGuiManager.h"
+
+#include "..\FbxMesh\FbxModelLoader\FbxModelLoader.h"
+#include "..\FbxMesh\FbxRenderer\FbxRenderer.h"
+#include "..\FbxMesh\FbxModel\FbxModel.h"
 
 LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 
@@ -29,6 +34,9 @@ CMain::CMain()
 	m_pCamera = std::make_unique<CCamera>();
 	m_pFbxMesh = std::make_unique<CFbxMesh>();
 	m_pFbxGround = std::make_unique<CFbxMesh>();
+	m_FbxRenderer = std::make_unique<CFbxRenderer>();
+	m_FbxModel = std::make_shared<CFbxModel>();
+	m_FbxModelLoader = std::make_unique<CFbxModelLoader>();
 }
 
 CMain::~CMain()
@@ -47,6 +55,9 @@ HRESULT CMain::Init()
 		m_pDirectX11->GetDevice(), 
 		m_pDirectX11->GetContext() ))) return E_FAIL;
 
+	m_FbxRenderer->Create( m_pDirectX11->GetContext() );
+	m_FbxModelLoader->Create( m_pDirectX11->GetContext() );
+
 	return S_OK;
 }
 
@@ -55,6 +66,8 @@ HRESULT CMain::Init()
 //====================================.
 void CMain::Release()
 {
+	m_FbxModelLoader->Destroy();
+	m_FbxRenderer->Destroy();
 	m_pFbxGround->Destroy();
 	m_pFbxMesh->Destroy();
 	CImGuiManager::Release();
@@ -80,17 +93,12 @@ HRESULT CMain::Load()
 		"Data\\Model\\UE_Animation\\Walk_02_Cheerful_Loop_IP.FBX",
 		"Data\\Model\\UE_Animation\\Walk_04_Texting_Loop_IP.FBX",
 	};
-	m_pFbxMesh->Create( m_pDirectX11->GetContext(), fileName[0] );
-	m_pAc = m_pFbxMesh->GetAnimationController();
+	m_pFbxMesh->Create( m_pDirectX11->GetContext(), fileName[8] );
+	m_Ac = m_pFbxMesh->GetAnimationController();
 
 	m_pFbxGround->Create( m_pDirectX11->GetContext(), fileName[2] );
 
-
-	CFbxAnimationLoader* pAnimData = new CFbxAnimationLoader;
-	pAnimData->Create( fileName[8] );
-//	m_pAc.AddAnimationData( pAnimData->GetAnimDateList() );
-	pAnimData->Destroy();
-	delete pAnimData;
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[8] );
 
 	return S_OK;
 }
@@ -108,7 +116,7 @@ void CMain::Update()
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { -3.1415f/2.0f, 0.0f, 0.0f };
-	static DirectX::XMFLOAT3 objectScale = { 10.05f, 10.05f, 10.05f };
+	static DirectX::XMFLOAT3 objectScale = { 0.05f, 0.05f, 0.05f };
 	// カメラ制御.
 	{
 		static DirectX::XMFLOAT3 cameraPos = { 0.0f, 4.0f, 17.0f };
@@ -163,18 +171,18 @@ void CMain::Update()
 	}
 
 	static int objNum = 1;
+	static const double speed = m_Ac.GetAnimSpeed()/2;
 	// オブジェクトの表示.
 	{
 		static int animNum = 0;
 		if( GetAsyncKeyState('A') & 0x0001 ){
 			animNum++;
-			m_pAc.ChangeNextAnimation();
+			m_Ac.ChangeNextAnimation();
 		}
-		static const double speed = m_pAc.GetAnimSpeed()/4;
 		if( GetAsyncKeyState('S') & 0x8000 ){
-			m_pAc.SetAnimSpeed( -speed );
+			m_Ac.SetAnimSpeed( -speed );
 		} else {
-			m_pAc.SetAnimSpeed( speed );
+			m_Ac.SetAnimSpeed( speed );
 		}
 		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
 		for( int i = 0; i < objNum; i++ ){
@@ -184,9 +192,26 @@ void CMain::Update()
 			m_pFbxMesh->Render(
 				m_pCamera->GetViewMatrix(),
 				m_pCamera->GetProjMatrix(),
-				&m_pAc );
+				&m_Ac );
 		}
+		m_pFbxMesh->SetPosition( { -1.0f, 0.0f, 0.0f } );
+		m_pFbxMesh->SetRotation( objectRot );
+		m_pFbxMesh->SetScale( objectScale );
+		m_pFbxMesh->Render(
+			m_pCamera->GetViewMatrix(),
+			m_pCamera->GetProjMatrix() );
+	}
 
+	// 描画クラスとモデルクラスを別々の場合の描画.
+	{
+		m_FbxModel->SetPosition( { 1.0f, 0.0f, 0.0f } );
+		m_FbxModel->SetRotation( objectRot );
+		m_FbxModel->SetScale( objectScale );
+		m_FbxModel->SetAnimSpeed( speed );
+		m_FbxRenderer->Render(
+			*m_FbxModel.get(),
+			m_pCamera->GetViewMatrix(),
+			m_pCamera->GetProjMatrix() );
 	}
 
 	// ImGui表示.

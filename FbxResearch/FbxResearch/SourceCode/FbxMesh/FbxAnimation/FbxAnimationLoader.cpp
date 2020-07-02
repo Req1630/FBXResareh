@@ -247,6 +247,7 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 			for( auto& f : animData.KeyFrameLinkMatrix[meshNo][0] ){
 				animData.FrameList.back().emplace_back( f.first );
 			}
+			animData.FrameList.back().emplace_back( animData.EndTime );
 		}
 
 		// ƒtƒŒ[ƒ€‚Ì”•ª.

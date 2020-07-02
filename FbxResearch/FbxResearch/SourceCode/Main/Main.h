@@ -5,13 +5,18 @@
 #include <string>
 #include <Windows.h>
 
-#include "..\FbxMesh\FbxMesh.h"
+#include "..\FbxMesh\FbxAnimation\FbxAnimationController.h"
 
 //-------------------------.
 //	ëOï˚êÈåæ.
 class CDirectX11;
-class CFbxMesh;
 class CCamera;
+class CFrameRate;
+
+class CFbxMesh;
+class CFbxRenderer;
+class CFbxModelLoader;
+class CFbxModel;
 //-------------------------.
 
 /**************************************************
@@ -52,7 +57,11 @@ private:
 	std::unique_ptr<CFbxMesh>	m_pFbxMesh;
 	std::unique_ptr<CFbxMesh>	m_pFbxGround;
 	std::unique_ptr<CCamera>	m_pCamera;
-	CFbxAnimationController		m_pAc;
+	CFbxAnimationController		m_Ac;
+
+	std::unique_ptr<CFbxRenderer>		m_FbxRenderer;
+	std::unique_ptr<CFbxModelLoader>	m_FbxModelLoader;
+	std::shared_ptr<CFbxModel>			m_FbxModel;
 
 };
 

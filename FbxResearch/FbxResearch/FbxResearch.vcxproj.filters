@@ -66,9 +66,6 @@
     <ClCompile Include="SourceCode\ImGui\ImGuiManager\ImGuiManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SourceCode\FbxMesh\FbxAnimationController.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationLoader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -76,6 +73,15 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\FbxMesh\FbxModel\FbxModel.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationController.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,9 +119,6 @@
     <ClInclude Include="SourceCode\Utility\FrameRate\FrameRate.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="SourceCode\FbxMesh\FbxAnimationData.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="SourceCode\ImGui\imconfig.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -143,9 +146,6 @@
     <ClInclude Include="SourceCode\ImGui\ImGuiManager\ImGuiManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="SourceCode\FbxMesh\FbxAnimationController.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="SourceCode\FbxMesh\FbxMeshData.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -156,6 +156,18 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\FbxMesh\FbxModel\FbxModel.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationController.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationData.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

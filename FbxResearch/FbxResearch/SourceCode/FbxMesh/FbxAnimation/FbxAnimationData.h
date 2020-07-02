@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\Global.h"
-#include "FbxInclude\FbxInclude.h"
+#include "..\..\Global.h"
+#include "..\FbxInclude\FbxInclude.h"
 
 #include <vector>
 #include <string>

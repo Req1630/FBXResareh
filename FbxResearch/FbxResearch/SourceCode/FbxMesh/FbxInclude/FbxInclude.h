@@ -8,7 +8,11 @@
 #if _DLL	// ランタイムライブラリ.
 
 // MD, MDd.
-#pragma comment( lib, "libfbxsdk-md.lib" )
+#if _DEBUG
+#pragma comment( lib, "debug\\libfbxsdk-md.lib" )
+#else
+#pragma comment( lib, "release\\libfbxsdk-md.lib" )
+#endif	// #if _DEBUG.
 
 /***********************************
 ↓ FBXSDK ver.2019-1 以降で仕様.
@@ -19,7 +23,11 @@
 #else
 
 // MT, MTd.
-#pragma comment( lib, "libfbxsdk-mt.lib" )
+#if _DEBUG
+#pragma comment( lib, "debug\\libfbxsdk-mt.lib" )
+#else
+#pragma comment( lib, "release\\libfbxsdk-mt.lib" )
+#endif	// #if _DEBUG.
 
 /***********************************
 ↓ FBXSDK ver.2019-1 以降で仕様.

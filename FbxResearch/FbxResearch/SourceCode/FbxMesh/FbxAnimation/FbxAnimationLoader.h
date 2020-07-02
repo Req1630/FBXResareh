@@ -1,7 +1,7 @@
 #pragma once
 
 #include "..\FbxInclude\FbxInclude.h"
-#include "..\FbxAnimationData.h"
+#include "FbxAnimationData.h"
 
 #include <Windows.h>
 #include <vector>

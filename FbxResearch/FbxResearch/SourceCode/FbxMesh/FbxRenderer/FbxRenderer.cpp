@@ -1,4 +1,6 @@
 #include "FbxRenderer.h"
+#include "..\FbxModel\FbxModel.h"
+#include "..\FbxAnimation\FbxAnimationController.h"
 
 CFbxRenderer::CFbxRenderer()
 {
@@ -9,21 +11,69 @@ CFbxRenderer::~CFbxRenderer()
 }
 
 //-----------------------------------------.
+//				作成.
+//-----------------------------------------.
+HRESULT CFbxRenderer::Create( ID3D11DeviceContext* pContext11 )
+{
+	if( pContext11 == nullptr ) return E_FAIL;
+	// コンテキストの取得.
+	m_pContext11 = pContext11;
+	// デバイスの取得.
+	m_pContext11->GetDevice( &m_pDevice11 );
+	if( m_pDevice11 == nullptr ) return E_FAIL;
+
+	// バッファーの作成.
+	if( FAILED( CreateBuffer() )) return E_FAIL;
+	// サンプラーの作成.
+	if( FAILED( CreateSampler() )) return E_FAIL;
+	// シェーダーの作成.
+	if( FAILED( CreateShader() )) return E_FAIL;
+
+	return S_OK;
+}
+
+//-----------------------------------------.
+//				破壊.
+//-----------------------------------------.
+void CFbxRenderer::Destroy()
+{
+	SAFE_RELEASE( m_pSampleLinear );
+	SAFE_RELEASE( m_pCBufferPerBone );
+	SAFE_RELEASE( m_pCBufferPerMaterial );
+	SAFE_RELEASE( m_pCBufferPerMesh );
+	SAFE_RELEASE( m_pVertexLayout );
+	SAFE_RELEASE( m_pPixelShader );
+	SAFE_RELEASE( m_pVertexShader );
+
+	m_pDevice11 = nullptr;
+	m_pContext11 = nullptr;
+}
+
+//-----------------------------------------.
 //				描画.
 //-----------------------------------------.
 void CFbxRenderer::Render(
-	CFbxModel mdoel,
+	CFbxModel& mdoel,
 	const DirectX::XMMATRIX& view, 
 	const DirectX::XMMATRIX& proj,
 	CFbxAnimationController* pAc )
 {
 	// ワールド行列取得.
-//	DirectX::XMMATRIX World	= GetWorldMatrix();
+	DirectX::XMMATRIX World	= mdoel.GetWorldMatrix();
 	int meshNo = 0;
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
+
+	if( pAc == nullptr ){
+		// アニメーションフレームの更新.
+		if( mdoel.GetPtrAC() != nullptr ) mdoel.GetPtrAC()->FrameUpdate();
+	} else {
+		// アニメーションフレームの更新.
+		if( pAc != nullptr ) pAc->FrameUpdate();
+	}
+
 	// メッシュデータ分描画.
-	for( auto& m : mdoel.m_MeshData ){
+	for( auto& m : mdoel.GetMeshData() ){
 		// アニメーションの行列計算.
 		AnimMatrixCalculation( mdoel, meshNo, m, pAc );
 		meshNo++;
@@ -46,11 +96,11 @@ void CFbxRenderer::Render(
 		{
 			CBUFFER_PER_MESH cb;
 			// ワールド行列を転置して渡す.
-//			cb.mW	= DirectX::XMMatrixTranspose( World );
+			cb.mW	= DirectX::XMMatrixTranspose( World );
 			// world, View, Proj を転置して渡す.
-//			cb.mWVP	= DirectX::XMMatrixTranspose( World * view * proj );
+			cb.mWVP	= DirectX::XMMatrixTranspose( World * view * proj );
 			// アニメーションがあるかどうか( 0.0 : 無し, 1.0 : 有り).
-			cb.IsAnimation.x = mdoel.m_pAc == nullptr ? 0.0f : 1.0f;
+			cb.IsAnimation.x = mdoel.GetPtrAC() == nullptr ? 0.0f : 1.0f;
 			memcpy_s(
 				pdata.pData, pdata.RowPitch,
 				(void*)(&cb), sizeof(cb) );
@@ -83,10 +133,10 @@ void CFbxRenderer::Render(
 		// サンプラをセット.
 		m_pContext11->PSSetSamplers( 0, 1, &m_pSampleLinear );
 
-		if( mdoel.m_Textures.count(m.Material.Name) > 0 ){
+		if( mdoel.GetTextures().count(m.Material.Name) > 0 ){
 			// テクスチャがあれば.
 			// テクスチャをシェーダーに渡す.
-			m_pContext11->PSSetShaderResources( 0, 1, &mdoel.m_Textures.at(m.Material.Name) );
+			m_pContext11->PSSetShaderResources( 0, 1, &mdoel.GetTextures().at(m.Material.Name) );
 		} else {
 			// テクスチャ無し.
 			ID3D11ShaderResourceView* notex = { nullptr };
@@ -99,34 +149,38 @@ void CFbxRenderer::Render(
 
 // アニメーション用の行列計算.
 void CFbxRenderer::AnimMatrixCalculation(
-	CFbxModel mdoel,
+	CFbxModel& mdoel,
 	const int& meahNo,
 	FBXMeshData& meshData,
 	CFbxAnimationController* pAc  )
 {
 	// アニメーションデータが無ければ終了.
-	if( mdoel.m_pAc == nullptr ) return;
-
-	CFbxAnimationController* pAC = nullptr;
-	if( pAc == nullptr ){
-		pAC = mdoel.m_pAc;
-	} else {
-		pAC = pAc;
-	}
-
-	// アニメーションフレームの更新.
-	pAC->FrameUpdate();
-
-	FbxMatrix globalPosition = pAC->GetFrameMatrix( meahNo );
+	if( mdoel.GetPtrAC() == nullptr ) return;
 	CBUFFER_PER_BONE cb;
-	int boneIndex = 0;
-	FbxMatrix frameMatrix;
-	FbxMatrix vertexTransformMatrix;
-	for( auto& b : meshData.Skin.InitBonePositions ){
-		frameMatrix = globalPosition.Inverse() * pAC->GetFrameLinkMatrix( meahNo, boneIndex );
-		vertexTransformMatrix = frameMatrix * b;
-		cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
-		boneIndex++;
+	if( pAc == nullptr ){
+		FbxMatrix globalPosition = mdoel.GetPtrAC()->GetFrameMatrix( meahNo );
+		
+		int boneIndex = 0;
+		FbxMatrix frameMatrix;
+		FbxMatrix vertexTransformMatrix;
+		for( auto& b : meshData.Skin.InitBonePositions ){
+			frameMatrix = globalPosition.Inverse() * mdoel.GetPtrAC()->GetFrameLinkMatrix( meahNo, boneIndex );
+			vertexTransformMatrix = frameMatrix * b;
+			cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
+			boneIndex++;
+		}
+	} else {
+		FbxMatrix globalPosition = pAc->GetFrameMatrix( meahNo );
+
+		int boneIndex = 0;
+		FbxMatrix frameMatrix;
+		FbxMatrix vertexTransformMatrix;
+		for( auto& b : meshData.Skin.InitBonePositions ){
+			frameMatrix = globalPosition.Inverse() * pAc->GetFrameLinkMatrix( meahNo, boneIndex );
+			vertexTransformMatrix = frameMatrix * b;
+			cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
+			boneIndex++;
+		}
 	}
 
 	D3D11_MAPPED_SUBRESOURCE pdata;
@@ -144,7 +198,6 @@ void CFbxRenderer::AnimMatrixCalculation(
 	m_pContext11->VSSetConstantBuffers( 2, 1, &m_pCBufferPerBone );
 	m_pContext11->PSSetConstantBuffers( 2, 1, &m_pCBufferPerBone );
 
-	pAC = nullptr;
 }
 
 //-----------------------------------------.

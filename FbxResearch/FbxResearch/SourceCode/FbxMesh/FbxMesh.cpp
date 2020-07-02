@@ -1,4 +1,5 @@
 #include "FbxMesh.h"
+#include "FbxAnimation/FbxAnimationController.h"
 
 CFbxMesh::CFbxMesh()
 	: m_pFbxManager			( nullptr )
@@ -44,6 +45,7 @@ HRESULT CFbxMesh::Create( ID3D11DeviceContext* pContext11, const char* fileName 
 		return E_FAIL;
 	}
 
+	{
 	//------------------------------.
 	// インポーターの作成.
 	//------------------------------.
@@ -137,6 +139,7 @@ HRESULT CFbxMesh::Create( ID3D11DeviceContext* pContext11, const char* fileName 
 		m_pAc = new CFbxAnimationController;
 		m_pAc->SetAnimDataList( animDataList );
 	}
+	}
 
 	// バッファーの作成.
 	if( FAILED( CreateBuffer() )) return E_FAIL;
@@ -156,7 +159,7 @@ void CFbxMesh::Destroy()
 	SAFE_RELEASE( m_pSampleLinear );
 	SAFE_RELEASE( m_pCBufferPerBone );
 	SAFE_RELEASE( m_pCBufferPerMaterial );
-	SAFE_RELEASE( m_pCBufferPerMesh )
+	SAFE_RELEASE( m_pCBufferPerMesh );
 	SAFE_RELEASE( m_pVertexLayout );
 	SAFE_RELEASE( m_pPixelShader );
 	SAFE_RELEASE( m_pVertexShader );
@@ -172,6 +175,117 @@ void CFbxMesh::Destroy()
 	m_pContext11 = nullptr;
 }
 
+//-----------------------------------------.
+//				破壊.
+//-----------------------------------------.
+HRESULT CFbxMesh::LoadModel( const char* fileName )
+{
+	//------------------------------.
+	// インポーターの作成.
+	//------------------------------.
+	FbxImporter* pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
+	if( pFbxImpoter == nullptr ){
+		ERROR_MESSAGE( "FbxImpoter Create Failure." );
+		return E_FAIL;
+	}
+
+	//------------------------------.
+	// FBXファイルの読み込み.
+	//------------------------------.
+	// ファイル名の設定.
+	FbxString fbxFileName( fileName );
+	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
+		ERROR_MESSAGE( "FbxFile Loading Failure." );
+		return E_FAIL;
+	}
+
+	//------------------------------.
+	// シーンオブジェクトの作成.
+	//------------------------------.
+	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
+	if( m_pFbxScene == nullptr ){
+		ERROR_MESSAGE( "FbxScene Create Failure." );
+		return E_FAIL;
+	}
+
+	//------------------------------.
+	// インポーターとシーンオブジェクトの関連付け.
+	//------------------------------.
+	if( pFbxImpoter->Import( m_pFbxScene ) == false ){
+		SAFE_DESTROY( m_pFbxManager );
+		SAFE_DESTROY( m_pFbxScene );
+		SAFE_DESTROY( pFbxImpoter );
+		ERROR_MESSAGE( "FbxScene Create Failure." );
+		return E_FAIL;
+	}
+	SAFE_DESTROY( pFbxImpoter );
+
+	bool convertReslut = false;
+	FbxGeometryConverter geometryConverter( m_pFbxManager );
+	// ポリゴンを三角形にする.
+	// 多角形ポリゴンがあれば作りなおすので時間がかかる.
+	convertReslut = geometryConverter.Triangulate( m_pFbxScene, true );
+	if( convertReslut == false ){
+		ERROR_MESSAGE( "Triangulate Failure." );
+		return E_FAIL;
+	}
+	geometryConverter.RemoveBadPolygonsFromMeshes( m_pFbxScene );
+	// メッシュをマテリアルごとに分割する.
+	convertReslut = geometryConverter.SplitMeshesPerMaterial( m_pFbxScene, true );
+	if( convertReslut == false ){
+		ERROR_MESSAGE( "SplitMeshesPerMaterial Failure." );
+		return E_FAIL;
+	}
+
+
+	//----------------------------.
+	// FbxSkeletonの数を取得.
+	//----------------------------.
+	int skeletonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
+	int skeletonNo = 0;
+	m_Skeletons.resize( skeletonNum );
+	for( auto& s : m_Skeletons ){
+		s = m_pFbxScene->GetSrcObject<FbxSkeleton>(skeletonNo);
+		skeletonNo++;
+	}
+
+	//----------------------------.
+	// FbxMeshの数を取得.
+	//----------------------------.
+	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
+	int meshNo = 0;
+	m_MeshData.resize( meshNum );
+	for( auto& m : m_MeshData ){
+		// メッシュデータの取得.
+		FbxMesh* pMesh = m_pFbxScene->GetSrcObject<FbxMesh>(meshNo);
+		// マテリアルの取得.
+		GetMaterial( pMesh, m, fileName );
+		// メッシュデータの読み込み.
+		LoadMesh( pMesh, m );
+		// 頂点バッファの作成.
+		if( FAILED( CreateVertexBuffers( m ) )) return E_FAIL;
+		// インデックスバッファの作成.
+		if( FAILED( CreateIndexBuffers( m ) )) return E_FAIL;
+		meshNo++;
+	}
+
+	//----------------------------.
+	//	アニメーションの読み込み.
+	//----------------------------.
+	m_pAnimLoader = std::make_unique<CFbxAnimationLoader>();
+	std::vector<SAnimationData>	animDataList;
+	m_pAnimLoader->LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
+	if( animDataList.empty() == false ){
+		// 上で設定したアニメーションデータがあれば.
+		// アニメーションコントローラーを作成して.
+		// アニメーションデータを追加.
+		m_pAc = new CFbxAnimationController;
+		m_pAc->SetAnimDataList( animDataList );
+	}
+
+	return S_OK;
+}
+
 // 描画.
 void CFbxMesh::Render(
 	const DirectX::XMMATRIX& view,
@@ -183,6 +297,15 @@ void CFbxMesh::Render(
 	int meshNo = 0;
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
+
+	if( pAc == nullptr ){
+		// アニメーションフレームの更新.
+		if( m_pAc != nullptr ) m_pAc->FrameUpdate();
+	} else {
+		// アニメーションフレームの更新.
+		if( pAc != nullptr ) pAc->FrameUpdate();
+	}
+
 	// メッシュデータ分描画.
 	for( auto& m : m_MeshData ){
 		// アニメーションの行列計算.
@@ -275,6 +398,13 @@ DirectX::XMMATRIX CFbxMesh::GetWorldMatrix()
 	// ワールド行列作成.
 	// 拡縮*回転*移動.
 	return mScale * mRot * mTarn;
+}
+
+// アニメーションコントローラーの取得.
+CFbxAnimationController CFbxMesh::GetAnimationController()
+{
+	if( m_pAc != nullptr ) return *m_pAc;
+	return CFbxAnimationController();
 }
 
 // バッファの作成.
@@ -478,9 +608,6 @@ void CFbxMesh::AnimMatrixCalculation( const int& meahNo, FBXMeshData& meshData, 
 	} else {
 		pAC = pAc;
 	}
-
-	// アニメーションフレームの更新.
-	pAC->FrameUpdate();
 
 	FbxMatrix globalPosition = pAC->GetFrameMatrix( meahNo );
 	CBUFFER_PER_BONE cb;
@@ -980,6 +1107,20 @@ void CFbxMesh::SetBoneWeight( VERTEX& vertex, const std::vector<float>& weight, 
 	case 0:
 		break;
 	}
+}
+
+
+// アニメーション速度の設定.
+void CFbxMesh::SetAnimSpeed( const double& speed )
+{
+	if( m_pAc == nullptr ) return;
+	m_pAc->SetAnimSpeed( speed );
+}
+// アニメーション速度の設定.
+void CFbxMesh::ChangeAnimation( int& index )
+{
+	if( m_pAc == nullptr ) return;
+	m_pAc->ChangeAnimation( index );
 }
 
 //-----------------------------------------.
