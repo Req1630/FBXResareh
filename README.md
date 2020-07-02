@@ -15,4 +15,19 @@ FBX_SDKを使用したFBXファイルの読み込みテスト
   　保存先を決める(保存先を覚えとく)  
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/FBXSDK2.png" alt="FbxSDK" title="FbxSDK">  
   
-  FBX_SDKのインストールはこれで終了
+  FBX_SDKのインストールはこれで終了  
+  次にプロジェクトの設定  
+  
+  　プロジェクトのプロパティを開く  
+  　VC++ ディレクトリを開く 
+    構成がすべての構成になっていることを確認  
+<img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ1.PNG" alt="FbxSDK" title="FbxSDK">  
+  　インクルードディレクトリを選択し 
+<img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ2.png" alt="FbxSDK" title="FbxSDK">  
+  　先ほどインストールしたFBXSDKのIncludeフォルダまでのファイルパスを入力する  
+<img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ3.png" alt="FbxSDK" title="FbxSDK">  
+  　次にライブラリディレクトリを選択し  
+<img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ4.png" alt="FbxSDK" title="FbxSDK">  
+  　同じく先ほどインストールしたFBXSDKのlibフォルダ->vs2015->x86までのファイルパスを入力する  
+<img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ5.png" alt="FbxSDK" title="FbxSDK">  
+  
