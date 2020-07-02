@@ -9,7 +9,7 @@ FBX_SDKを使用したFBXファイルの読み込みテスト
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/FBXSDK3.png" alt="FbxSDK" title="FbxSDK">  
   
   ダウンロード後 exeファイルを起動  
-  Iacceptを押して有効にし次に進む  
+  `Iaccept`を押して有効にし次に進む  
     
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/FBXSDK1.png" alt="FbxSDK" title="FbxSDK">  
   保存先を決めて(保存先を覚えとく)  
@@ -20,8 +20,8 @@ FBX_SDKを使用したFBXファイルの読み込みテスト
   次にプロジェクトの設定  
   
   プロジェクトのプロパティを開く  
-  VC++ ディレクトリを開く 
-  構成がすべての構成になっていることを確認  
+  VC++ ディレクトリを開く  
+  構成が`すべての構成`になっていることを確認  
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ1.PNG" alt="FbxSDK" title="FbxSDK">  
   インクルードディレクトリを選択し 
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/プロパティ2.png" alt="FbxSDK" title="FbxSDK">  
