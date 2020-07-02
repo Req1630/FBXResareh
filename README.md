@@ -12,7 +12,8 @@ FBX_SDKを使用したFBXファイルの読み込みテスト
   　Iacceptを押して有効にし次に進む  
     
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/FBXSDK1.png" alt="FbxSDK" title="FbxSDK">  
-  　保存先を決める(保存先を覚えとく)  
+  　保存先を決めて(保存先を覚えとく)  
+  　インストールを始める  
 <img src="https://github.com/Req1630/FBXResareh/blob/master/fbxTextuer/FBXSDK2.png" alt="FbxSDK" title="FbxSDK">  
   
   FBX_SDKのインストールはこれで終了  
