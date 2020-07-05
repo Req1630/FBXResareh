@@ -182,8 +182,47 @@ HRESULT CDirectX11::InitDSTex()
 		_ASSERT_EXPR( false, L"デプスステンシルビュー作成失敗" );
 		return E_FAIL;
 	}
+
+	descDepth.Format	= DXGI_FORMAT_R16G16B16A16_FLOAT;	// 32ﾋﾞｯﾄﾌｫｰﾏｯﾄ.
+	descDepth.BindFlags	= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;	// 深度(ｽﾃﾝｼﾙとして使用).
+	// そのﾃｸｽﾁｬに対してﾃﾞﾌﾟｽｽﾃﾝｼﾙ(DSTex)を作成.
+	if( FAILED( m_pDevice11->CreateTexture2D( &descDepth, nullptr, &m_pColorMapTex )) ){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	// RenderTargetView作成　MRTに必要な個数
+	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pColorMapTex, nullptr, &m_pColorMap ) )){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	// テクスチャ作成時と同じフォーマット
+	if( FAILED( m_pDevice11->CreateShaderResourceView( m_pColorMapTex, nullptr, &m_pColorSRV ) )){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	descDepth.Format	= DXGI_FORMAT_R11G11B10_FLOAT;	// 32ﾋﾞｯﾄﾌｫｰﾏｯﾄ.
+	// そのﾃｸｽﾁｬに対してﾃﾞﾌﾟｽｽﾃﾝｼﾙ(DSTex)を作成.
+	if( FAILED( m_pDevice11->CreateTexture2D( &descDepth, nullptr, &m_pNormalMapTex )) ){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	// RenderTargetView作成　MRTに必要な個数
+	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pNormalMapTex, nullptr, &m_pNormalMap ) )){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	// テクスチャ作成時と同じフォーマット
+	if( FAILED( m_pDevice11->CreateShaderResourceView( m_pNormalMapTex, nullptr, &m_pNormalSRV ) )){
+		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
+		return E_FAIL;
+	}
+	ID3D11RenderTargetView* rts[] =
+	{
+		m_pColorMap,
+		m_pNormalMap,
+	};
 	// ﾚﾝﾀﾞｰﾀｰｹﾞｯﾄﾋﾞｭｰとﾃﾞﾌﾟｽｽﾃﾝｼﾙﾋﾞｭｰをﾊﾟｲﾌﾟﾗｲﾝにｾｯﾄ.
-	m_pContext11->OMSetRenderTargets( 1, &m_pBackBuffer_TexRTV, m_pBackBuffer_DSTexDSV );
+	m_pContext11->OMSetRenderTargets( 2, rts, m_pBackBuffer_DSTexDSV );
 	return S_OK;
 }
 

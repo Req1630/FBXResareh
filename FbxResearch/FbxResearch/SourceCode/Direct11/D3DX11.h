@@ -50,6 +50,13 @@ private: //----- 変数 ------.
 	ID3D11RenderTargetView*	m_pBackBuffer_TexRTV;	// レンダーターゲットビュー.
 	ID3D11Texture2D*		m_pBackBuffer_DSTex;	// テクスチャー2D.
 	ID3D11DepthStencilView*	m_pBackBuffer_DSTexDSV;	// ステンシルビュー.
+
+	ID3D11RenderTargetView*		m_pColorMap;	// カラーマップ.
+	ID3D11Texture2D*			m_pColorMapTex;
+	ID3D11ShaderResourceView*	m_pColorSRV;	// カラーマップシェーダーリソースビュー.
+	ID3D11RenderTargetView*		m_pNormalMap;	// ノーマルマップ.
+	ID3D11Texture2D*			m_pNormalMapTex;
+	ID3D11ShaderResourceView*	m_pNormalSRV;	// ノーマルマップシェーダーリソースビュー.
 	
 };
 
