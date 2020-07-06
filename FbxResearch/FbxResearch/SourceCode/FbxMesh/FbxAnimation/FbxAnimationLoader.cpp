@@ -131,6 +131,7 @@ HRESULT CFbxAnimationLoader::LoadAnimationData(
 //-----------------------------------------.
 void CFbxAnimationLoader::LoadSkin( FbxMesh* pMesh, FBXMeshClusterData& meshClusterData )
 {
+	int skinCount = pMesh->GetDeformerCount( FbxDeformer::eSkin );
 	// ダウンキャストしてスキン情報を取得.
 	FbxSkin* pSkin = (FbxSkin*)pMesh->GetDeformer( 0, FbxDeformer::eSkin );
 	if( pSkin == nullptr ) return;

@@ -92,13 +92,19 @@ HRESULT CMain::Load()
 		"Data\\Model\\JumpingDown\\JumpingDown.fbx",
 		"Data\\Model\\UE_Animation\\Walk_02_Cheerful_Loop_IP.FBX",
 		"Data\\Model\\UE_Animation\\Walk_04_Texting_Loop_IP.FBX",
+		"Data\\Model\\unitychan\\unitychan_JUMP01.fbx",
 	};
 	m_pFbxMesh->Create( m_pDirectX11->GetContext(), fileName[8] );
 	m_Ac = m_pFbxMesh->GetAnimationController();
 
+	CFbxAnimationLoader animLoader;
+	animLoader.Create( fileName[9] );
+	m_Ac.AddAnimationData( animLoader.GetAnimDateList() );
+	animLoader.Destroy();
+
 	m_pFbxGround->Create( m_pDirectX11->GetContext(), fileName[2] );
 
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[8] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[0] );
 
 	return S_OK;
 }
@@ -194,7 +200,7 @@ void CMain::Update()
 				m_pCamera->GetProjMatrix(),
 				&m_Ac );
 		}
-		m_pFbxMesh->SetPosition( { -1.0f, 0.0f, 0.0f } );
+		m_pFbxMesh->SetPosition( { -3.0f, 0.0f, 0.0f } );
 		m_pFbxMesh->SetRotation( objectRot );
 		m_pFbxMesh->SetScale( objectScale );
 		m_pFbxMesh->Render(
@@ -205,9 +211,9 @@ void CMain::Update()
 
 	// 描画クラスとモデルクラスを別々の場合の描画.
 	{
-		m_FbxModel->SetPosition( { 1.0f, 0.0f, 0.0f } );
+		m_FbxModel->SetPosition( { 3.0f, 0.0f, 0.0f } );
 		m_FbxModel->SetRotation( objectRot );
-		m_FbxModel->SetScale( objectScale );
+		m_FbxModel->SetScale( 5.0f );
 		m_FbxModel->SetAnimSpeed( speed );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
