@@ -96,12 +96,23 @@ VS_OUTPUT VS_Main( VS_INPUT input )
     return output;
 }
 
+struct PS_OUTPUT
+{
+	float4 Color	: SV_Target0;
+	float4 Normal	: SV_Target1;
+};
+
 //--------------------------------.
 // ピクセルシェーダ.
 //--------------------------------.
-float4 PS_Main( VS_OUTPUT input ) : SV_Target
+PS_OUTPUT PS_Main(VS_OUTPUT input) : SV_Target0
 {
 	float4 color = { 1.0f, 0.0f, 0.0f, 1.0f };
-	color = g_Texture.Sample(g_samLinear, input.UV)/2.0f + input.Color/2.0f;
-    return color;
+	color = g_Texture.Sample(g_samLinear, input.UV) / 2.0f + input.Color / 2.0f;
+	
+	PS_OUTPUT output = (PS_OUTPUT)0;
+	output.Color = color;
+	output.Normal = input.Normal;
+	
+	return output;
 }

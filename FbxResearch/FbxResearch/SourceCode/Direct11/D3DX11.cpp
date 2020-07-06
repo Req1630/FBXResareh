@@ -9,6 +9,12 @@ CDirectX11::CDirectX11()
 	, m_pBackBuffer_TexRTV		( nullptr )
 	, m_pBackBuffer_DSTex		( nullptr )
 	, m_pBackBuffer_DSTexDSV	( nullptr )
+	, m_pColorMapRTV			( nullptr )
+	, m_pColorMapTex			( nullptr )
+	, m_pColorSRV				( nullptr )
+	, m_pNormalMapRTV			( nullptr )
+	, m_pNormalMapTex			( nullptr )
+	, m_pNormalSRV				( nullptr )
 {
 }
 
@@ -37,6 +43,13 @@ HRESULT CDirectX11::Create( HWND hWnd )
 //-----------------------------------.
 HRESULT CDirectX11::Release()
 {
+	SAFE_RELEASE(m_pColorMapRTV);
+	SAFE_RELEASE(m_pColorMapTex);
+	SAFE_RELEASE(m_pColorSRV);
+	SAFE_RELEASE(m_pNormalMapRTV);
+	SAFE_RELEASE(m_pNormalMapTex);
+	SAFE_RELEASE(m_pNormalSRV);
+
 	SAFE_RELEASE(m_pBackBuffer_DSTexDSV);
 	SAFE_RELEASE(m_pBackBuffer_DSTex);
 	SAFE_RELEASE(m_pBackBuffer_TexRTV);
@@ -53,7 +66,9 @@ HRESULT CDirectX11::Release()
 void CDirectX11::ClearBackBuffer()
 {
 	// カラーバックバッファ.
-	m_pContext11->ClearRenderTargetView( m_pBackBuffer_TexRTV, CLEAR_BACK_COLOR );
+	m_pContext11->ClearRenderTargetView( m_pBackBuffer_TexRTV, CLEAR_BACK_COLOR1 );
+	m_pContext11->ClearRenderTargetView( m_pColorMapRTV, CLEAR_BACK_COLOR2 );
+	m_pContext11->ClearRenderTargetView( m_pNormalMapRTV, CLEAR_BACK_COLOR3 );
 
 	// デプスステンシルバッファ.
 	m_pContext11->ClearDepthStencilView(
@@ -191,7 +206,7 @@ HRESULT CDirectX11::InitDSTex()
 		return E_FAIL;
 	}
 	// RenderTargetView作成　MRTに必要な個数
-	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pColorMapTex, nullptr, &m_pColorMap ) )){
+	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pColorMapTex, nullptr, &m_pColorMapRTV ) )){
 		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
 		return E_FAIL;
 	}
@@ -207,7 +222,7 @@ HRESULT CDirectX11::InitDSTex()
 		return E_FAIL;
 	}
 	// RenderTargetView作成　MRTに必要な個数
-	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pNormalMapTex, nullptr, &m_pNormalMap ) )){
+	if( FAILED( m_pDevice11->CreateRenderTargetView( m_pNormalMapTex, nullptr, &m_pNormalMapRTV ) )){
 		_ASSERT_EXPR( false, L"デプスステンシル作成失敗" );
 		return E_FAIL;
 	}
@@ -218,8 +233,8 @@ HRESULT CDirectX11::InitDSTex()
 	}
 	ID3D11RenderTargetView* rts[] =
 	{
-		m_pColorMap,
-		m_pNormalMap,
+		m_pColorMapRTV,
+		m_pNormalMapRTV,
 	};
 	// ﾚﾝﾀﾞｰﾀｰｹﾞｯﾄﾋﾞｭｰとﾃﾞﾌﾟｽｽﾃﾝｼﾙﾋﾞｭｰをﾊﾟｲﾌﾟﾗｲﾝにｾｯﾄ.
 	m_pContext11->OMSetRenderTargets( 2, rts, m_pBackBuffer_DSTexDSV );

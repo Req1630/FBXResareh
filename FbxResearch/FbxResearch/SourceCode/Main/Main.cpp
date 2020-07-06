@@ -134,13 +134,13 @@ void CMain::Update()
 	}
 
 	// 地面の表示.
-	{
+	/*{
 		m_pFbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
 		m_pFbxGround->SetScale( 100.0f );
 		m_pFbxGround->Render(
 			m_pCamera->GetViewMatrix(), 
 			m_pCamera->GetProjMatrix() );
-	}
+	}*/
 
 	// オブジェクト操作.
 	{
@@ -173,34 +173,34 @@ void CMain::Update()
 	static int objNum = 1;
 	static const double speed = m_Ac.GetAnimSpeed()/2;
 	// オブジェクトの表示.
-	{
-		static int animNum = 0;
-		if( GetAsyncKeyState('A') & 0x0001 ){
-			animNum++;
-			m_Ac.ChangeNextAnimation();
-		}
-		if( GetAsyncKeyState('S') & 0x8000 ){
-			m_Ac.SetAnimSpeed( -speed );
-		} else {
-			m_Ac.SetAnimSpeed( speed );
-		}
-		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
-		for( int i = 0; i < objNum; i++ ){
-			m_pFbxMesh->SetPosition( objectPos );
-			m_pFbxMesh->SetRotation( objectRot );
-			m_pFbxMesh->SetScale( objectScale );
-			m_pFbxMesh->Render(
-				m_pCamera->GetViewMatrix(),
-				m_pCamera->GetProjMatrix(),
-				&m_Ac );
-		}
-		m_pFbxMesh->SetPosition( { -1.0f, 0.0f, 0.0f } );
-		m_pFbxMesh->SetRotation( objectRot );
-		m_pFbxMesh->SetScale( objectScale );
-		m_pFbxMesh->Render(
-			m_pCamera->GetViewMatrix(),
-			m_pCamera->GetProjMatrix() );
-	}
+	//{
+	//	static int animNum = 0;
+	//	if( GetAsyncKeyState('A') & 0x0001 ){
+	//		animNum++;
+	//		m_Ac.ChangeNextAnimation();
+	//	}
+	//	if( GetAsyncKeyState('S') & 0x8000 ){
+	//		m_Ac.SetAnimSpeed( -speed );
+	//	} else {
+	//		m_Ac.SetAnimSpeed( speed );
+	//	}
+	//	if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
+	//	for( int i = 0; i < objNum; i++ ){
+	//		m_pFbxMesh->SetPosition( objectPos );
+	//		m_pFbxMesh->SetRotation( objectRot );
+	//		m_pFbxMesh->SetScale( objectScale );
+	//		m_pFbxMesh->Render(
+	//			m_pCamera->GetViewMatrix(),
+	//			m_pCamera->GetProjMatrix(),
+	//			&m_Ac );
+	//	}
+	//	m_pFbxMesh->SetPosition( { -1.0f, 0.0f, 0.0f } );
+	//	m_pFbxMesh->SetRotation( objectRot );
+	//	m_pFbxMesh->SetScale( objectScale );
+	//	m_pFbxMesh->Render(
+	//		m_pCamera->GetViewMatrix(),
+	//		m_pCamera->GetProjMatrix() );
+	//}
 
 
 	// 描画クラスとモデルクラスを別々の場合の描画.

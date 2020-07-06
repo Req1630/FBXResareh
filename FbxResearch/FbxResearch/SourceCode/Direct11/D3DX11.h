@@ -3,10 +3,15 @@
 
 #include "..\Global.h"
 
+#include <vector>
+
 class CDirectX11
 {
 private: //----- 定数 ------.
-	const float CLEAR_BACK_COLOR[4] = { 0.1f, 0.1f, 0.6f, 1.0f };	// バックカラー.
+	const float CLEAR_BACK_COLOR1[4] = { 0.1f, 0.1f, 0.6f, 1.0f };	// バックカラー.
+	const float CLEAR_BACK_COLOR2[4] = { 0.6f, 0.1f, 0.1f, 1.0f };	// バックカラー.
+	const float CLEAR_BACK_COLOR3[4] = { 0.1f, 0.6f, 0.1f, 1.0f };	// バックカラー.
+
 
 public: //----- 関数 ------.
 	CDirectX11();
@@ -50,13 +55,14 @@ private: //----- 変数 ------.
 	ID3D11RenderTargetView*	m_pBackBuffer_TexRTV;	// レンダーターゲットビュー.
 	ID3D11Texture2D*		m_pBackBuffer_DSTex;	// テクスチャー2D.
 	ID3D11DepthStencilView*	m_pBackBuffer_DSTexDSV;	// ステンシルビュー.
+	
 
-	ID3D11RenderTargetView*		m_pColorMap;	// カラーマップ.
+	ID3D11RenderTargetView*		m_pColorMapRTV;		// カラーマップ.
 	ID3D11Texture2D*			m_pColorMapTex;
-	ID3D11ShaderResourceView*	m_pColorSRV;	// カラーマップシェーダーリソースビュー.
-	ID3D11RenderTargetView*		m_pNormalMap;	// ノーマルマップ.
+	ID3D11ShaderResourceView*	m_pColorSRV;		// カラーマップシェーダーリソースビュー.
+	ID3D11RenderTargetView*		m_pNormalMapRTV;	// ノーマルマップ.
 	ID3D11Texture2D*			m_pNormalMapTex;
-	ID3D11ShaderResourceView*	m_pNormalSRV;	// ノーマルマップシェーダーリソースビュー.
+	ID3D11ShaderResourceView*	m_pNormalSRV;		// ノーマルマップシェーダーリソースビュー.
 	
 };
 
