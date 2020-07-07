@@ -14,6 +14,7 @@
 #include "..\Camera\Camera.h"
 
 #include "..\ImGui\ImGuiManager\ImGuiManager.h"
+#include "..\Sprite\CSprite.h"
 
 #include "..\FbxMesh\FbxModelLoader\FbxModelLoader.h"
 #include "..\FbxMesh\FbxRenderer\FbxRenderer.h"
@@ -28,6 +29,7 @@ CMain::CMain()
 	, m_pFbxMesh		( nullptr )
 	, m_pFbxGround		( nullptr )
 	, m_pCamera			( nullptr )
+	, m_Sprite			( nullptr )
 {
 	m_pDirectX11 = std::make_unique<CDirectX11>();
 	m_pFPS = std::make_unique<CFrameRate>( FPS );
@@ -37,6 +39,7 @@ CMain::CMain()
 	m_FbxRenderer = std::make_unique<CFbxRenderer>();
 	m_FbxModel = std::make_shared<CFbxModel>();
 	m_FbxModelLoader = std::make_unique<CFbxModelLoader>();
+	m_Sprite = std::make_unique<CSprite>();
 }
 
 CMain::~CMain()
@@ -57,6 +60,7 @@ HRESULT CMain::Init()
 
 	m_FbxRenderer->Create( m_pDirectX11->GetContext() );
 	m_FbxModelLoader->Create( m_pDirectX11->GetContext() );
+	m_Sprite->Init( m_pDirectX11->GetContext() );
 
 	return S_OK;
 }
@@ -66,6 +70,7 @@ HRESULT CMain::Init()
 //====================================.
 void CMain::Release()
 {
+	m_Sprite->Release();
 	m_FbxModelLoader->Destroy();
 	m_FbxRenderer->Destroy();
 	m_pFbxGround->Destroy();
@@ -98,7 +103,7 @@ HRESULT CMain::Load()
 
 	m_pFbxGround->Create( m_pDirectX11->GetContext(), fileName[2] );
 
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[8] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[0] );
 
 	return S_OK;
 }
@@ -116,7 +121,7 @@ void CMain::Update()
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { -3.1415f/2.0f, 0.0f, 0.0f };
-	static DirectX::XMFLOAT3 objectScale = { 0.05f, 0.05f, 0.05f };
+	static DirectX::XMFLOAT3 objectScale = { 10.05f, 10.05f, 10.05f };
 	// カメラ制御.
 	{
 		static DirectX::XMFLOAT3 cameraPos = { 0.0f, 4.0f, 17.0f };
@@ -134,13 +139,15 @@ void CMain::Update()
 	}
 
 	// 地面の表示.
-	/*{
+	{
 		m_pFbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
 		m_pFbxGround->SetScale( 100.0f );
 		m_pFbxGround->Render(
 			m_pCamera->GetViewMatrix(), 
 			m_pCamera->GetProjMatrix() );
-	}*/
+	}
+
+	
 
 	// オブジェクト操作.
 	{
@@ -202,10 +209,85 @@ void CMain::Update()
 	//		m_pCamera->GetProjMatrix() );
 	//}
 
+	
 
 	// 描画クラスとモデルクラスを別々の場合の描画.
 	{
-		m_FbxModel->SetPosition( { 1.0f, 0.0f, 0.0f } );
+		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
+		for( int i = 0; i < objNum; i++ ){
+			m_FbxModel->SetPosition( objectPos );
+			m_FbxModel->SetRotation( objectRot );
+			m_FbxModel->SetScale( objectScale );
+			m_FbxModel->SetAnimSpeed( speed );
+			m_FbxRenderer->Render(
+				*m_FbxModel.get(),
+				m_pCamera->GetViewMatrix(),
+				m_pCamera->GetProjMatrix() );
+		}
+	}
+
+	static DirectX::XMFLOAT3 spritePos = { 0.0f, WND_H*0.3f*0.0f, 0.0f };
+	if( GetAsyncKeyState('T') & 0x8000 ){
+		if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) spritePos.y -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) spritePos.y += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD4) & 0x8000 ) spritePos.x -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD6) & 0x8000 ) spritePos.x += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) spritePos.z += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) spritePos.z -= 2.0f;
+	}
+	static DirectX::XMFLOAT3 spritePos2 = { 0.0f, WND_H*0.3f*1.0f, 0.0f };
+	if( GetAsyncKeyState('N') & 0x8000 ){
+		if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) spritePos2.y -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) spritePos2.y += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD4) & 0x8000 ) spritePos2.x -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD6) & 0x8000 ) spritePos2.x += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) spritePos2.z += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) spritePos2.z -= 2.0f;
+	}
+	static DirectX::XMFLOAT3 spritePos3 = { 0.0f, WND_H*0.3f*2.0f, 0.0f };
+	if( GetAsyncKeyState('V') & 0x8000 ){
+		if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) spritePos3.y -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) spritePos3.y += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD4) & 0x8000 ) spritePos3.x -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD6) & 0x8000 ) spritePos3.x += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) spritePos3.z += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) spritePos3.z -= 2.0f;
+	}
+	static DirectX::XMFLOAT3 spritePos4 = { 0.0f, 0.0f, 0.0f };
+	if( GetAsyncKeyState('V') & 0x8000 ){
+		if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) spritePos4.y -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) spritePos4.y += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD4) & 0x8000 ) spritePos4.x -= 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD6) & 0x8000 ) spritePos4.x += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) spritePos4.z += 2.0f;
+		if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) spritePos4.z -= 2.0f;
+	}
+	m_pDirectX11->SetBackBuffer();
+
+	m_Sprite->SetPosition( spritePos );
+	m_Sprite->SetScale( { 0.3f, 0.3f, 0.3f } );
+	m_Sprite->Render( m_pDirectX11->GetColorMap() );
+
+	m_Sprite->SetPosition( spritePos2 );
+	m_Sprite->SetScale( { 0.3f, 0.3f, 0.3f } );
+	m_Sprite->Render( m_pDirectX11->GetNormalMap() );
+
+	m_Sprite->SetPosition( spritePos3 );
+	m_Sprite->SetScale( { 0.3f, 0.3f, 0.3f } );
+	m_Sprite->Render( m_pDirectX11->GetZDepthMap() );
+
+	m_Sprite->SetPosition( spritePos4 );
+	m_Sprite->SetScale( { 1.0f, 1.0f, 1.0f } );
+	m_Sprite->Render( m_pDirectX11->GetGBuffer() );
+
+	{
+		m_pFbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
+		m_pFbxGround->SetScale( 100.0f );
+		m_pFbxGround->Render(
+			m_pCamera->GetViewMatrix(), 
+			m_pCamera->GetProjMatrix() );
+
+		m_FbxModel->SetPosition( objectPos );
 		m_FbxModel->SetRotation( objectRot );
 		m_FbxModel->SetScale( objectScale );
 		m_FbxModel->SetAnimSpeed( speed );

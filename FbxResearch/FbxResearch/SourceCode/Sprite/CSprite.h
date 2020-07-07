@@ -5,6 +5,8 @@
 
 #include "..\Global.h"
 
+#include <vector>
+
 /**************************************************
 *	ｽﾌﾟﾗｲﾄｸﾗｽ.
 **/
@@ -16,15 +18,19 @@ public:
 	//======================================
 	//ｺﾝｽﾀﾝﾄﾊﾞｯﾌｧのｱﾌﾟﾘ側の定義.
 	//※ｼｪｰﾀﾞ内のｺﾝｽﾀﾝﾄﾊﾞｯﾌｧと一致している必要あり.
-	struct SHADER_CONSTANT_BUFFER
+	struct C_BUFFER
 	{
-		DirectX::XMMATRIX	mWVP;		//ﾜｰﾙﾄﾞ,ﾋﾞｭｰ,ﾌﾟﾛｼﾞｪｸｼｮﾝの合成変換行列.	
-		DirectX::XMFLOAT4	vColor;		//ｶﾗｰ(RGBAの型に合わせる).
+		ALIGN16 DirectX::XMMATRIX	mW;				// ワールド行列.
+		ALIGN16 DirectX::XMMATRIX	mWVP;
+		ALIGN16 DirectX::XMFLOAT4	vColor;			// カラー(RGBAの型に合わせる).
+		ALIGN16 DirectX::XMFLOAT2	vUV;			// UV座標.
+		ALIGN16 DirectX::XMFLOAT2	vViewPort;		// UV座標.
 	};
 	//頂点の構造体.
 	struct VERTEX
 	{
 		DirectX::XMFLOAT3 Pos;	//頂点座標.
+		DirectX::XMFLOAT2 Tex;
 	};
 
 public:
@@ -32,7 +38,7 @@ public:
 	~CSprite();	//ﾃﾞｽﾄﾗｸﾀ.
 
 	//初期化.
-	HRESULT Init();
+	HRESULT Init( ID3D11DeviceContext* pContext11 );
 
 	//解放.
 	void Release();
@@ -41,9 +47,12 @@ public:
 	HRESULT CreateShader();
 	//ﾓﾃﾞﾙ作成.
 	HRESULT CreateModel();
+	// サンプラの作成.
+	HRESULT InitSample();
 
 	//ﾚﾝﾀﾞﾘﾝｸﾞ用.
-	void Render();
+	void Render( ID3D11ShaderResourceView* pSRV );
+	void Render( std::vector<ID3D11ShaderResourceView*> gbuffers );
 
 	//座標情報を設定.
 	void SetPosition(const DirectX::XMFLOAT3& vPos) {	m_vPosition = vPos;	}
@@ -73,8 +82,10 @@ private:
 	ID3D11VertexShader*		m_pVertexShader;	//頂点ｼｪｰﾀﾞ.
 	ID3D11InputLayout*		m_pVertexLayout;	//頂点ﾚｲｱｳﾄ.
 	ID3D11PixelShader*		m_pPixelShader;		//ﾋﾟｸｾﾙｼｪｰﾀﾞ.
+	ID3D11PixelShader*		m_pPixelShaderLast;		//ﾋﾟｸｾﾙｼｪｰﾀﾞ.
 	ID3D11Buffer*			m_pConstantBuffer;	//ｺﾝｽﾀﾝﾄﾊﾞｯﾌｧ.
 	ID3D11Buffer*			m_pVertexBuffer;	//頂点ﾊﾞｯﾌｧ.
+	ID3D11SamplerState*		m_pSampleLinear;		// サンプラ:テクスチャに各種フィルタをかける.
 
 	DirectX::XMFLOAT3		m_vPosition;	//座標.
 	DirectX::XMFLOAT3		m_vRotation;	//回転

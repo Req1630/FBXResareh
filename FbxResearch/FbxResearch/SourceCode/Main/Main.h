@@ -12,6 +12,7 @@
 class CDirectX11;
 class CCamera;
 class CFrameRate;
+class CSprite;
 
 class CFbxMesh;
 class CFbxRenderer;
@@ -62,6 +63,7 @@ private:
 	std::unique_ptr<CFbxRenderer>		m_FbxRenderer;
 	std::unique_ptr<CFbxModelLoader>	m_FbxModelLoader;
 	std::shared_ptr<CFbxModel>			m_FbxModel;
+	std::unique_ptr<CSprite>			m_Sprite;
 
 };
 

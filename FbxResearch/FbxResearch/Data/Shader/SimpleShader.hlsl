@@ -100,6 +100,7 @@ struct PS_OUTPUT
 {
 	float4 Color	: SV_Target0;
 	float4 Normal	: SV_Target1;
+	float4 ZDepth	: SV_Target2;
 };
 
 //--------------------------------.
@@ -113,6 +114,7 @@ PS_OUTPUT PS_Main(VS_OUTPUT input) : SV_Target0
 	PS_OUTPUT output = (PS_OUTPUT)0;
 	output.Color = color;
 	output.Normal = input.Normal;
+	output.ZDepth = input.Pos.z / input.Pos.w;
 	
 	return output;
 }
