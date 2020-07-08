@@ -5,6 +5,19 @@
 #include "..\..\Light\Light.h"
 
 CFbxRenderer::CFbxRenderer()
+	: m_pDevice11			( nullptr )
+	, m_pContext11			( nullptr )
+	, m_pVertexShader		( nullptr )
+	, m_pVertexAnimShader	( nullptr )
+	, m_pPixelShader		( nullptr )
+	, m_pVertexLayout		( nullptr )
+	, m_pCBufferPerMesh		( nullptr )
+	, m_pCBufferPerMaterial	( nullptr )
+	, m_pCBufferPerBone		( nullptr )
+	, m_pSampleLinear		( nullptr )
+	, m_Position			( 0.0f, 0.0f, 0.0f )
+	, m_Rotation			( 0.0f, 0.0f, 0.0f )
+	, m_Scale				( 1.0f, 1.0f, 1.0f )
 {
 }
 
@@ -12,9 +25,9 @@ CFbxRenderer::~CFbxRenderer()
 {
 }
 
-//-----------------------------------------.
-//				作成.
-//-----------------------------------------.
+////////////////////////////////////////////////.
+//	作成.
+////////////////////////////////////////////////.
 HRESULT CFbxRenderer::Create( ID3D11DeviceContext* pContext11 )
 {
 	if( pContext11 == nullptr ) return E_FAIL;
@@ -34,9 +47,9 @@ HRESULT CFbxRenderer::Create( ID3D11DeviceContext* pContext11 )
 	return S_OK;
 }
 
-//-----------------------------------------.
-//				破壊.
-//-----------------------------------------.
+////////////////////////////////////////////////.
+//	破壊.
+////////////////////////////////////////////////.
 void CFbxRenderer::Destroy()
 {
 	SAFE_RELEASE( m_pSampleLinear );
@@ -45,15 +58,16 @@ void CFbxRenderer::Destroy()
 	SAFE_RELEASE( m_pCBufferPerMesh );
 	SAFE_RELEASE( m_pVertexLayout );
 	SAFE_RELEASE( m_pPixelShader );
+	SAFE_RELEASE( m_pVertexAnimShader );
 	SAFE_RELEASE( m_pVertexShader );
 
 	m_pDevice11 = nullptr;
 	m_pContext11 = nullptr;
 }
 
-//-----------------------------------------.
-//				描画.
-//-----------------------------------------.
+////////////////////////////////////////////////.
+//	描画.
+////////////////////////////////////////////////.
 void CFbxRenderer::Render(
 	CFbxModel& mdoel,
 	CCamera& camera,
@@ -77,6 +91,10 @@ void CFbxRenderer::Render(
 
 	// メッシュデータ分描画.
 	for( auto& m : mdoel.GetMeshData() ){
+		// 使用するシェーダーの設定.
+		m_pContext11->VSSetShader( m_pVertexShader, nullptr, 0 );
+		m_pContext11->PSSetShader( m_pPixelShader, nullptr, 0 );
+
 		// アニメーションの行列計算.
 		AnimMatrixCalculation( mdoel, meshNo, m, pAc );
 		meshNo++;
@@ -87,10 +105,7 @@ void CFbxRenderer::Render(
 		m_pContext11->IASetInputLayout( m_pVertexLayout );
 		// プリティブトポロジーをセット.
 		m_pContext11->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-		// 使用するシェーダーの設定.
-		m_pContext11->VSSetShader( m_pVertexShader, nullptr, 0 );
-		m_pContext11->PSSetShader( m_pPixelShader, nullptr, 0 );
-
+		
 		D3D11_MAPPED_SUBRESOURCE pdata;
 		if( SUCCEEDED ( m_pContext11->Map( 
 			m_pCBufferPerMesh, 0, 
@@ -108,12 +123,6 @@ void CFbxRenderer::Render(
 			cb.CameraPos = { camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z, 0.0f };
 			// ライトの方向を渡す.
 			cb.LightDir = light.GetDirection();
-			// アニメーションがあるかどうか( 0.0 : 無し, 1.0 : 有り).
-			if( pAc == nullptr ){
-				cb.IsAnimation.x = mdoel.GetPtrAC() == nullptr ? 0.0f : 1.0f;
-			} else {
-				cb.IsAnimation.x = pAc == nullptr ? 0.0f : 1.0f;
-			}
 
 			memcpy_s(
 				pdata.pData, pdata.RowPitch,
@@ -161,7 +170,9 @@ void CFbxRenderer::Render(
 	}
 }
 
+////////////////////////////////////////////////.
 // アニメーション用の行列計算.
+////////////////////////////////////////////////.
 void CFbxRenderer::AnimMatrixCalculation(
 	CFbxModel& mdoel,
 	const int& meahNo,
@@ -198,6 +209,9 @@ void CFbxRenderer::AnimMatrixCalculation(
 		}
 	}
 
+	// アニメーション用の頂点シェーダーの設定.
+	m_pContext11->VSSetShader( m_pVertexAnimShader, nullptr, 0 );
+
 	D3D11_MAPPED_SUBRESOURCE pdata;
 	if( SUCCEEDED ( m_pContext11->Map( 
 		m_pCBufferPerBone, 0,
@@ -215,26 +229,38 @@ void CFbxRenderer::AnimMatrixCalculation(
 
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////.
 // 定数バッファの作成.
-//-----------------------------------------.
+////////////////////////////////////////////////.
 HRESULT CFbxRenderer::CreateBuffer()
 {
 	//--------------------------------------.
 	// 定数バッファの設定
 	//--------------------------------------.
 	if( FAILED( CreateConstantBuffer( 
-		sizeof(CBUFFER_PER_MESH), &m_pCBufferPerMesh ) )) return E_FAIL;
+		sizeof(CBUFFER_PER_MESH), &m_pCBufferPerMesh ) )){
+		_ASSERT_EXPR( false, "メッシュ毎の定数バッファ作成失敗" );
+		MessageBox( nullptr, "メッシュ毎の定数バッファ作成失敗", "Warning", MB_OK );
+		return E_FAIL;
+	}
 	if( FAILED( CreateConstantBuffer(
-		sizeof(CBUFFER_PER_MATERIAL), &m_pCBufferPerMaterial ) )) return E_FAIL;
+		sizeof(CBUFFER_PER_MATERIAL), &m_pCBufferPerMaterial ) )){
+		_ASSERT_EXPR( false, "マテリアル毎の定数バッファ作成失敗" );
+		MessageBox( nullptr, "マテリアル毎の定数バッファ作成失敗", "Warning", MB_OK );
+		return E_FAIL;
+	}
 	if( FAILED( CreateConstantBuffer(
-		sizeof(CBUFFER_PER_BONE), &m_pCBufferPerBone ) )) return E_FAIL;
+		sizeof(CBUFFER_PER_BONE), &m_pCBufferPerBone ) )){
+		_ASSERT_EXPR( false, "ボーン毎の定数バッファ作成失敗" );
+		MessageBox( nullptr, "ボーン毎の定数バッファ作成失敗", "Warning", MB_OK );
+		return E_FAIL;
+	}
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////.
 // サンプラー作成.
-//-----------------------------------------.
+////////////////////////////////////////////////.
 HRESULT CFbxRenderer::CreateSampler()
 {
 	D3D11_SAMPLER_DESC samDesc;
@@ -246,14 +272,16 @@ HRESULT CFbxRenderer::CreateSampler()
 	// サンプラ作成.
 	if( FAILED( m_pDevice11->CreateSamplerState(
 		&samDesc, &m_pSampleLinear ))){
+		_ASSERT_EXPR( false, "サンプラー作成失敗" );
+		MessageBox( nullptr, "サンプラー作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////.
 // 定数バッファ作成.
-//-----------------------------------------.
+////////////////////////////////////////////////.
 HRESULT CFbxRenderer::CreateConstantBuffer( const size_t& byte, ID3D11Buffer** buffer )
 {
 	D3D11_BUFFER_DESC cb;
@@ -270,13 +298,14 @@ HRESULT CFbxRenderer::CreateConstantBuffer( const size_t& byte, ID3D11Buffer** b
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////.
 // シェーダーの作成.
-//-----------------------------------------.
+////////////////////////////////////////////////.
 HRESULT CFbxRenderer::CreateShader()
 {
 	ID3DBlob* pCompileVS = nullptr;
 	ID3DBlob* pCompilePS = nullptr;
+	ID3DBlob* pErrerBlog = nullptr;
 	UINT uCompileFlag = 0;
 
 #ifdef _DEBUG
@@ -284,61 +313,81 @@ HRESULT CFbxRenderer::CreateShader()
 	uCompileFlag = D3D10_SHADER_DEBUG | D3D10_SHADER_SKIP_OPTIMIZATION;
 #endif	// #ifdef _DEBUG.
 
-	//----------------------------.
-	// 頂点シェーダー.
-	//----------------------------.
-	if( FAILED(
-		D3DCompileFromFile( 
-			SHADER_NAME, 
-			nullptr, 
-			nullptr, 
-			"VS_Main",
-			"vs_5_0", 
-			uCompileFlag,
-			0, 
-			&pCompileVS, 
-			nullptr ))){
-			ERROR_MESSAGE( "vs hlsl Loading Failure." );
+	// シェーダー読み込み関数.
+	auto shaderCompile = [&]( 
+		const wchar_t* fileName, 
+		const char* entryPosint, 
+		const char* version, 
+		ID3DBlob** ppOutBlog )
+	{
+		if( FAILED(
+			D3DCompileFromFile( 
+				fileName,							// シェーダー名.
+				nullptr,							// マクロ定義(シェーダー側でマクロ定義している場合に使用).
+				D3D_COMPILE_STANDARD_FILE_INCLUDE,	// インクルード定義(シェーダー側でインクルード定義している場合に使用).
+				entryPosint,						// エントリーポイント.
+				version,							// シェーダーのバーション.
+				uCompileFlag,						// フラグ.
+				0,									// フラグ.
+				ppOutBlog,							// (out)シェーダーの情報.
+				&pErrerBlog ))){					// (out)エラー情報など.
+			std::string msg;
+			msg.resize( pErrerBlog->GetBufferSize() );
+			std::copy_n(static_cast<char*>(pErrerBlog->GetBufferPointer()), pErrerBlog->GetBufferSize(), msg.begin());
+			_ASSERT_EXPR( false, msg.c_str() );
+			MessageBox( nullptr, msg.c_str(), "Warning", MB_OK );
 			return E_FAIL;
-	}
+		}
+		return S_OK;
+	};
+	//-----------------------------------------.
+	// 頂点シェーダー.
+	//-----------------------------------------.
+	// 頂点シェーダーの読み込み.
+	if( FAILED( shaderCompile( VS_SHADER_NAME, "VS_Main", "vs_5_0", &pCompileVS ) )) return E_FAIL;
+	// 頂点シェーダーの作成.
 	if( FAILED(
 		m_pDevice11->CreateVertexShader(
-			pCompileVS->GetBufferPointer(),
-			pCompileVS->GetBufferSize(),
-			nullptr,
-			&m_pVertexShader ))){
-		ERROR_MESSAGE( "vs hlsl Creating Failure." );
+			pCompileVS->GetBufferPointer(),	// 読み込んだシェーダーのポインタ.
+			pCompileVS->GetBufferSize(),	// 頂点シェーダーのサイズ.
+			nullptr,						// "動的シェーダーリンク"を使用しないのでnull.
+			&m_pVertexShader ))){			// (out)頂点シェーダー.
+		_ASSERT_EXPR( false, "頂点シェーダー作成失敗" );
+		MessageBox( nullptr, "頂点シェーダー作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
-	//----------------------------.
-	// ピクセルシェーダー.
-	//----------------------------.
+	// 頂点シェーダー(アニメーション)の読み込み.
+	if( FAILED( shaderCompile( VS_ANIM_SHADER_NAME, "VS_Main", "vs_5_0", &pCompileVS ) )) return E_FAIL;
+	// 頂点シェーダー(アニメーション)の作成.
 	if( FAILED(
-		D3DCompileFromFile( 
-			SHADER_NAME, 
-			nullptr, 
-			nullptr, 
-			"PS_Main", 
-			"ps_5_0", 
-			uCompileFlag, 
-			0, 
-			&pCompilePS, 
-			nullptr ))){
-		ERROR_MESSAGE( "ps hlsl Loading Failure." );
+		m_pDevice11->CreateVertexShader(
+			pCompileVS->GetBufferPointer(),	// 読み込んだシェーダーのポインタ.
+			pCompileVS->GetBufferSize(),	// 頂点シェーダーのサイズ.
+			nullptr,						// "動的シェーダーリンク"を使用しないのでnull.
+			&m_pVertexAnimShader ))){		// (out)頂点シェーダー.
+		_ASSERT_EXPR( false, "頂点シェーダー作成失敗" );
+		MessageBox( nullptr, "頂点シェーダー作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
+	//-----------------------------------------.
+	// ピクセルシェーダー.
+	//-----------------------------------------.
+	// ピクセルシェーダーの読み込み.
+	if( FAILED( shaderCompile( PS_SHADER_NAME, "PS_Main", "ps_5_0", &pCompilePS ) )) return E_FAIL;
+	// ピクセルシェーダーの作成.
 	if( FAILED(
 		m_pDevice11->CreatePixelShader(
-			pCompilePS->GetBufferPointer(),
-			pCompilePS->GetBufferSize(),
-			nullptr,
-			&m_pPixelShader ))){
-		ERROR_MESSAGE( "ps hlsl Creating Failure." );
+			pCompilePS->GetBufferPointer(),	// 読み込んだシェーダーのポインタ.
+			pCompilePS->GetBufferSize(),	// ピクセルシェーダーのサイズ.
+			nullptr,						// "動的シェーダーリンク"を使用しないのでnull.
+			&m_pPixelShader ))){			// (out)ピクセルシェーダー.
+		_ASSERT_EXPR( false, "ピクセルシェーダー作成失敗" );
+		MessageBox( nullptr, "ピクセルシェーダー作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
-	//----------------------------.
+	//-----------------------------------------.
 	//	頂点インプット.
-	//----------------------------.
+	//-----------------------------------------.
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION",		0, DXGI_FORMAT_R32G32B32_FLOAT,		0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -356,7 +405,8 @@ HRESULT CFbxRenderer::CreateShader()
 			pCompileVS->GetBufferPointer(),
 			pCompileVS->GetBufferSize(),
 			&m_pVertexLayout ))){
-		ERROR_MESSAGE( "vs layout Creating Failure." );
+		_ASSERT_EXPR( false, "頂点レイアウト作成失敗" );
+		MessageBox( nullptr, "頂点レイアウト作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 

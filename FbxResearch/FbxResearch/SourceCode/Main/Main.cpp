@@ -66,7 +66,7 @@ HRESULT CMain::Init()
 		m_pDirectX11->GetContext() ))) return E_FAIL;
 
 	m_FbxRenderer->Create( m_pDirectX11->GetContext() );
-	m_FbxModelLoader->Create( m_pDirectX11->GetContext() );
+	m_FbxModelLoader->Create( m_pDirectX11->GetDevice() );
 	m_fbxAnimLoader->Create();
 	m_Sprite->Init( m_pDirectX11->GetContext() );
 
@@ -105,13 +105,14 @@ HRESULT CMain::Load()
 		"Data\\Model\\Liz\\Animations\\Liz_Jump.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
+		"Data\\Model\\sayaka_fbx\\sayaka_fbx.fbx",
 	};
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[5] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[10] );
 	
-	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[6] );
-	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[7] );
+//	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[6] );
+//	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[7] );
 
 	return S_OK;
 }
@@ -204,8 +205,7 @@ void CMain::Update()
 			m_FbxRenderer->Render(
 				*m_FbxModel.get(),
 				*m_pCamera.get(),
-				*m_pLight.get(),
-				&m_AC );
+				*m_pLight.get() );
 		}
 	}
 
@@ -278,8 +278,7 @@ void CMain::Update()
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
 			*m_pCamera.get(),
-			*m_pLight.get(),
-			&m_AC );
+			*m_pLight.get() );
 	}
 
 	// ImGui•\Ž¦.

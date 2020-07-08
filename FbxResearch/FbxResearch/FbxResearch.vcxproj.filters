@@ -180,5 +180,11 @@
   <ItemGroup>
     <FxCompile Include="Data\Shader\SimpleShader.hlsl" />
     <FxCompile Include="Data\Shader\Sprite.hlsl" />
+    <FxCompile Include="Data\Shader\FbxModelPS.hlsl" />
+    <FxCompile Include="Data\Shader\FbxAnimationVS.hlsl" />
+    <FxCompile Include="Data\Shader\FbxModelVS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Shader\FbxModelVS.hlsli" />
   </ItemGroup>
 </Project>

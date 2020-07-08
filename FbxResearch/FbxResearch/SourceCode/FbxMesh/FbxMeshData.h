@@ -47,28 +47,26 @@ struct SkinData
 //======================================.
 struct FBXMeshData
 {
-	MATERIAL	Material;				// マテリアルリスト.
-	std::vector<VERTEX>		Vertices;	// 頂点情報.
-	std::vector<UINT>		Indices;	// 頂点インデックス.
+	MATERIAL			Material;			// マテリアル.
+	std::vector<VERTEX>	Vertices;			// 頂点情報.
+	std::vector<UINT>	Indices;			// 頂点インデックス.
 
-	ID3D11Buffer*	pVertexBuffer;		// 頂点バッファリスト.
-	ID3D11Buffer*	pIndexBuffer;		// インデックスバッファリスト.
+	ID3D11Buffer*		pVertexBuffer;		// 頂点バッファリスト.
+	ID3D11Buffer*		pIndexBuffer;		// インデックスバッファリスト.
 
-	SkinData		Skin;
+	SkinData			Skin;				// スキン情報.
 
-	int				PolygonVertexCount;	// 頂点座標の数.
-	int				ControlPointCount;	
-	std::string		UVSetName;			// UVの名前.
-	int				UVSetCount;			// UVの数.
+	int					PolygonVertexCount;	// ポリゴン頂点インデックス数.
+	std::string			UVSetName;			// UVの名前.
+	int					UVSetCount;			// UVの数.
 
 	FBXMeshData()
-		: Material		()
-		, Vertices		()
-		, Indices		()
-		, pVertexBuffer	( nullptr )
-		, pIndexBuffer	( nullptr )
+		: Material				()
+		, Vertices				()
+		, Indices				()
+		, pVertexBuffer			( nullptr )
+		, pIndexBuffer			( nullptr )
 		, PolygonVertexCount	( 0 )
-		, ControlPointCount		( 0 )
 		, UVSetName				()
 		, UVSetCount			( 0 )
 	{}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\..\Global.h"
+#include "..\FbxInclude\FbxInclude.h"
 #include "..\FbxMeshData.h"
 
 class CFbxModel;
@@ -12,6 +12,9 @@ class CFbxRenderer
 {
 	// シェーダー名.
 	const wchar_t* SHADER_NAME = L"Data\\Shader\\SimpleShader.hlsl";
+	const wchar_t* VS_SHADER_NAME		= L"Data\\Shader\\FbxModelVS.hlsl";
+	const wchar_t* VS_ANIM_SHADER_NAME	= L"Data\\Shader\\FbxAnimationVS.hlsl";
+	const wchar_t* PS_SHADER_NAME		= L"Data\\Shader\\FbxModelPS.hlsl";
 
 	/***************************************
 	*			↓	構造体　↓.
@@ -21,12 +24,11 @@ class CFbxRenderer
 	//======================================.
 	struct CBUFFER_PER_MESH
 	{
-		DirectX::XMMATRIX mW;	// ワールド行列.
-		DirectX::XMMATRIX mWVP;	// World,View,Proj の合成変換行列.
+		DirectX::XMMATRIX mW;			// ワールド行列.
+		DirectX::XMMATRIX mWVP;			// World,View,Proj の合成変換行列.
 		DirectX::XMMATRIX mLightWVP;
 		DirectX::XMFLOAT4 CameraPos;
 		DirectX::XMFLOAT4 LightDir;
-		DirectX::XMFLOAT4 IsAnimation;
 	};
 	//======================================.
 	// コンスタントバッファ(マテリアル毎).
@@ -42,7 +44,7 @@ class CFbxRenderer
 	//======================================.
 	struct CBUFFER_PER_BONE
 	{
-		DirectX::XMMATRIX Bone[255];
+		DirectX::XMMATRIX Bone[255];	// ボーン行列.
 		CBUFFER_PER_BONE()
 		{
 			// 行列の初期化.
@@ -107,6 +109,7 @@ private:
 	*			シェーダー.
 	***************************************/
 	ID3D11VertexShader*	m_pVertexShader;		// 頂点シェーダー.
+	ID3D11VertexShader*	m_pVertexAnimShader;	// 頂点シェーダー(アニメーション).
 	ID3D11PixelShader*	m_pPixelShader;			// ピクセルシェーダー.
 
 	/***************************************

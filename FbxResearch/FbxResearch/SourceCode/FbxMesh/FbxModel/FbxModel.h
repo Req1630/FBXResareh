@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\..\Global.h"
+#include "..\FbxInclude\FbxInclude.h"
 #include "..\FbxMeshData.h"
 #include "..\FbxAnimation\FbxAnimationData.h"
 

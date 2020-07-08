@@ -215,7 +215,8 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 		
 	}
 	for( size_t i = 0; i < m_AnimDataList.size(); i++ ){
-		if( m_AnimDataList[i].FrameList.back().size() <= m_AnimDataList[i].FrameRate ){
+		if( m_AnimDataList[i].FrameList.empty() == true ||
+			m_AnimDataList[i].FrameList.back().size() <= m_AnimDataList[i].FrameRate ){
 			m_AnimDataList[i] = m_AnimDataList.back();
 			m_AnimDataList.pop_back();
 			i--;

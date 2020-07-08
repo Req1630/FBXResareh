@@ -37,12 +37,25 @@ class CFrameRate;
 //	マクロ.
 //===========================================================
 // 解放.
+#ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p)			if(p!=nullptr){(p)->Release();(p)=nullptr;}
+#endif	// #ifndef SAFE_RELEASE.
+
 // 破棄.
+#ifndef SAFE_DELETE
 #define SAFE_DELETE(p)			if(p!=nullptr){delete (p);(p)=nullptr;}
+#endif	// #ifndef SAFE_DELETE.
+
+// 破棄(配列).
+#ifndef SAFE_DELETE_ARRAY
 #define SAFE_DELETE_ARRAY(p)	if(p!=nullptr){delete[] (p);(p) = nullptr;}
-// 破棄.
+#endif	// #ifndef SAFE_DELETE_ARRAY.
+
+// 破壊.
+#ifndef SAFE_DESTROY
 #define SAFE_DESTROY(p)			if(p!=nullptr){(p)->Destroy();(p)=nullptr;}
+#endif	// #ifndef SAFE_DESTROY.
+
 // _declspec()	:DLLから(関数,クラス,クラスのメンバ関数を)エクスポートする.
 // align()		:(強制的に)16byte で使用する.
 #define ALIGN16	_declspec(align(16))

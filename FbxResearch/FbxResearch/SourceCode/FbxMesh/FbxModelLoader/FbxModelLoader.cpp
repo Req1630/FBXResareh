@@ -2,7 +2,14 @@
 #include "..\FbxRenderer\FbxRenderer.h"
 #include "..\FbxModel\FbxModel.h"
 
+#include <crtdbg.h>
+
 CFbxModelLoader::CFbxModelLoader()
+	: m_pDevice11		( nullptr )
+	, m_pFbxManager		( nullptr )
+	, m_pFbxScene		( nullptr )
+	, m_MeshClusterData	()
+	, m_Skeletons		()
 {
 }
 
@@ -10,125 +17,143 @@ CFbxModelLoader::~CFbxModelLoader()
 {
 }
 
+//////////////////////////////////////////////////////////////////////.
 // 作成.
-HRESULT CFbxModelLoader::Create( ID3D11DeviceContext* pContext11 )
+//////////////////////////////////////////////////////////////////////.
+HRESULT CFbxModelLoader::Create( ID3D11Device* pDevice )
 {
-	if( pContext11 == nullptr ) return E_FAIL;
-	// コンテキストの取得.
-	m_pContext11 = pContext11;
+	//---------------------------------------------.
 	// デバイスの取得.
-	m_pContext11->GetDevice( &m_pDevice11 );
-	if( m_pDevice11 == nullptr ) return E_FAIL;
+	//---------------------------------------------.
+	if( pDevice == nullptr ){
+		_ASSERT_EXPR( false, "デバイスの取得失敗" );
+		MessageBox( nullptr, "デバイスの取得失敗", "Warning", MB_OK );
+		return E_FAIL;
+	}
+	m_pDevice11 = pDevice;
 
-	//------------------------------.
+	//---------------------------------------------.
 	// マネージャーの作成.
-	//------------------------------.
+	//---------------------------------------------.
 	m_pFbxManager = FbxManager::Create();
 	if( m_pFbxManager == nullptr ){
-		ERROR_MESSAGE( "FbxManager Create Failure." );
+		_ASSERT_EXPR( false, "FbxManager作成失敗" );
+		MessageBox( nullptr, "FbxManager作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
 	return S_OK;
 }
 
+//////////////////////////////////////////////////////////////////////.
 // 破壊.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::Destroy()
 {
 	SAFE_DESTROY( m_pFbxScene );
 	SAFE_DESTROY( m_pFbxManager );
 
 	m_pDevice11 = nullptr;
-	m_pContext11 = nullptr;
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 //			モデルの読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName )
 {
-	//------------------------------.
+	//---------------------------------------------.
 	// インポーターの作成.
-	//------------------------------.
+	//---------------------------------------------.
 	FbxImporter* pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
 	if( pFbxImpoter == nullptr ){
-		ERROR_MESSAGE( "FbxImpoter Create Failure." );
+		_ASSERT_EXPR( false, "pFbxImpoter作成失敗" );
+		MessageBox( nullptr, "pFbxImpoter作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
-	//------------------------------.
+	//---------------------------------------------.
 	// FBXファイルの読み込み.
-	//------------------------------.
+	//---------------------------------------------.
 	// ファイル名の設定.
 	FbxString fbxFileName( fileName );
 	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
-		ERROR_MESSAGE( "FbxFile Loading Failure." );
+		_ASSERT_EXPR( false, "Fbxファイルの読み込み" );
+		MessageBox( nullptr, "Fbxファイルの読み込み", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
-	//------------------------------.
+	//---------------------------------------------.
 	// シーンオブジェクトの作成.
-	//------------------------------.
+	//---------------------------------------------.
 	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
 	if( m_pFbxScene == nullptr ){
-		ERROR_MESSAGE( "FbxScene Create Failure." );
+		_ASSERT_EXPR( false, "FbxSceneの作成失敗" );
+		MessageBox( nullptr, "FbxSceneの作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
-	//------------------------------.
+	//---------------------------------------------.
 	// インポーターとシーンオブジェクトの関連付け.
-	//------------------------------.
+	//---------------------------------------------.
 	if( pFbxImpoter->Import( m_pFbxScene ) == false ){
 		SAFE_DESTROY( m_pFbxManager );
 		SAFE_DESTROY( m_pFbxScene );
 		SAFE_DESTROY( pFbxImpoter );
-		ERROR_MESSAGE( "FbxScene Create Failure." );
+		_ASSERT_EXPR( false, "FbxSceneとFbxImpoterの関連付け失敗" );
+		MessageBox( nullptr, "FbxSceneとFbxImpoterの関連付け失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	SAFE_DESTROY( pFbxImpoter );
 
+
+	//---------------------------------------------.
+	// ポリゴンの設定.
+	//---------------------------------------------.
 	bool convertReslut = false;
 	FbxGeometryConverter geometryConverter( m_pFbxManager );
 	// ポリゴンを三角形にする.
 	// 多角形ポリゴンがあれば作りなおすので時間がかかる.
 	convertReslut = geometryConverter.Triangulate( m_pFbxScene, true );
 	if( convertReslut == false ){
-		ERROR_MESSAGE( "Triangulate Failure." );
+		_ASSERT_EXPR( false, "ポリゴンの三角化失敗" );
+		MessageBox( nullptr, "ポリゴンの三角化失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	geometryConverter.RemoveBadPolygonsFromMeshes( m_pFbxScene );
 	// メッシュをマテリアルごとに分割する.
 	convertReslut = geometryConverter.SplitMeshesPerMaterial( m_pFbxScene, true );
 	if( convertReslut == false ){
-		ERROR_MESSAGE( "SplitMeshesPerMaterial Failure." );
+		_ASSERT_EXPR( false, "マテリアルごとのメッシュ分割失敗" );
+		MessageBox( nullptr, "マテリアルごとのメッシュ分割失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
-
-	CFbxModel* pModel = pModelData;
-
-	//----------------------------.
+	//---------------------------------------------.
+	// FbxSkeletonの取得.
+	//---------------------------------------------.
 	// FbxSkeletonの数を取得.
-	//----------------------------.
 	int skeletonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
 	int skeletonNo = 0;
+	m_Skeletons.clear();
 	m_Skeletons.resize( skeletonNum );
 	for( auto& s : m_Skeletons ){
+		// FbxSkeletonの取得.
 		s = m_pFbxScene->GetSrcObject<FbxSkeleton>(skeletonNo);
 		skeletonNo++;
 	}
 
-	//----------------------------.
+	//---------------------------------------------.
+	// FbxMeshの取得.
+	//---------------------------------------------.
 	// FbxMeshの数を取得.
-	//----------------------------.
 	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
 	int meshNo = 0;
-	pModel->ReSizeMeshData( meshNum );
-	for( auto& m : pModel->GetMeshData() ){
+	pModelData->ReSizeMeshData( meshNum );
+	for( auto& m : pModelData->GetMeshData() ){
 		// メッシュデータの取得.
 		FbxMesh* pMesh = m_pFbxScene->GetSrcObject<FbxMesh>(meshNo);
 		// マテリアルの取得.
-		GetMaterial( pMesh, m, fileName, pModel->GetTextures() );
+		GetMaterial( pMesh, m, fileName, pModelData->GetTextures() );
 		// メッシュデータの読み込み.
 		LoadMesh( pMesh, m );
 		// 頂点バッファの作成.
@@ -138,23 +163,25 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 		meshNo++;
 	}
 
-	//----------------------------.
+	//---------------------------------------------.
 	//	アニメーションの読み込み.
-	//----------------------------.
-	m_pAnimLoader = std::make_unique<CFbxAnimationLoader>();
-	std::vector<SAnimationData>	animDataList;
-	m_pAnimLoader->LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
+	//---------------------------------------------.
+	CFbxAnimationLoader animLoader;				// アニメーション読み込みクラス.
+	std::vector<SAnimationData>	animDataList;	// アニメーションデータ.
+	animLoader.LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
 	if( animDataList.empty() == false ){
 		// 上で設定したアニメーションデータがあれば.
 		// アニメーションコントローラーを作成して.
 		// アニメーションデータを追加.
-		pModel->SetAnimationData( animDataList );
+		pModelData->SetAnimationData( animDataList );
 	}
 
 	return S_OK;
 }
 
+//////////////////////////////////////////////////////////////////////.
 // マテリアル取得.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char* fileName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures )
 {
 	// マテリアル情報が無いので終了.
@@ -176,47 +203,43 @@ void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char
 		// Specularの情報を取得.
 		FbxProperty specular = pMat->FindProperty( FbxSurfaceMaterial::sSpecular );
 
-		MATERIAL tmpMat;	// 仮マテリアルを用意.
-
-							// アンビエント取得.
+		// アンビエント取得.
 		if( ambient.IsValid() == true ){
-			tmpMat.Ambient.x = (float)ambient.Get<FbxDouble4>()[0];
-			tmpMat.Ambient.y = (float)ambient.Get<FbxDouble4>()[1];
-			tmpMat.Ambient.z = (float)ambient.Get<FbxDouble4>()[2];
-			tmpMat.Ambient.w = (float)ambient.Get<FbxDouble4>()[3];
+			mesh.Material.Ambient.x = (float)ambient.Get<FbxDouble4>()[0];
+			mesh.Material.Ambient.y = (float)ambient.Get<FbxDouble4>()[1];
+			mesh.Material.Ambient.z = (float)ambient.Get<FbxDouble4>()[2];
+			mesh.Material.Ambient.w = (float)ambient.Get<FbxDouble4>()[3];
 		} else {
-			tmpMat.Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mesh.Material.Ambient = { 1.0f, 1.0f, 1.0f, 1.0f };
 		}
 
-		// アンビエント取得.
+		// ディフーズ取得.
 		if( diffuse.IsValid() == true ){
-			tmpMat.Diffuse.x = (float)diffuse.Get<FbxDouble4>()[0];
-			tmpMat.Diffuse.y = (float)diffuse.Get<FbxDouble4>()[1];
-			tmpMat.Diffuse.z = (float)diffuse.Get<FbxDouble4>()[2];
-			tmpMat.Diffuse.w = (float)diffuse.Get<FbxDouble4>()[3];
+			mesh.Material.Diffuse.x = (float)diffuse.Get<FbxDouble4>()[0];
+			mesh.Material.Diffuse.y = (float)diffuse.Get<FbxDouble4>()[1];
+			mesh.Material.Diffuse.z = (float)diffuse.Get<FbxDouble4>()[2];
+			mesh.Material.Diffuse.w = (float)diffuse.Get<FbxDouble4>()[3];
 		} else {
-			tmpMat.Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mesh.Material.Diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
 		}
 
-		// アンビエント取得.
+		// スペキュラ取得.
 		if( specular.IsValid() == true ){
-			tmpMat.Specular.x = (float)specular.Get<FbxDouble4>()[0];
-			tmpMat.Specular.y = (float)specular.Get<FbxDouble4>()[1];
-			tmpMat.Specular.z = (float)specular.Get<FbxDouble4>()[2];
-			tmpMat.Specular.w = (float)specular.Get<FbxDouble4>()[3];
+			mesh.Material.Specular.x = (float)specular.Get<FbxDouble4>()[0];
+			mesh.Material.Specular.y = (float)specular.Get<FbxDouble4>()[1];
+			mesh.Material.Specular.z = (float)specular.Get<FbxDouble4>()[2];
+			mesh.Material.Specular.w = (float)specular.Get<FbxDouble4>()[3];
 		} else {
-			tmpMat.Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+			mesh.Material.Specular = { 1.0f, 1.0f, 1.0f, 1.0f };
 		}
 		// マテリアル名取得.
-		tmpMat.Name = pMat->GetName();
+		mesh.Material.Name = pMat->GetName();
 
-		// マテリアルリストに追加.
-		mesh.Material = tmpMat;
-
-		//-----------------------.
+		//---------------------------------------------.
 		// テクスチャ作成.
-		//-----------------------.
+		//---------------------------------------------.
 		FbxFileTexture* texture = nullptr;
+
 		// FbxFileTexture == シングルテクスチャ.
 		int textureCount = diffuse.GetSrcObjectCount<FbxFileTexture>();
 		if( textureCount > 0 ){
@@ -239,43 +262,61 @@ void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // テクスチャの読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 HRESULT CFbxModelLoader::LoadTexture( FbxFileTexture* texture, const char* fileName, const char* keyName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures )
 {
+	//---------------------------------------------.
 	// ファイル名を取得.
-	std::string texturePath = texture->GetRelativeFileName();
+	//---------------------------------------------.
+	std::string textureName = texture->GetRelativeFileName();
 	std::string path = fileName;
 
-	// ファイルパスを設定.
+	// 相対パスが空の場合、絶対パスを受け取る.
+	if( textureName.length() == 0 ) textureName = texture->GetFileName();
+
+	// モデルのパスを使用し、モデルファイル名を削除しとく.
 	int pos = path.find_last_of('\\')+1;
 	path = path.substr( 0, pos );
-	path += texturePath;
+
+	// テクスチャのファイル名を取得する.
+	int texNamePos = textureName.find_last_of('\\')+1;
+	textureName = textureName.substr( texNamePos, textureName.length() );
+	// ファイルパスと、テクスチャ名を合わせる.
+	path += textureName;
 
 	// wchar_t に変換.
 	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cv;
 	std::wstring wstr_file_name = cv.from_bytes(path);
 
+	//---------------------------------------------.
 	// テクスチャリソース作成.
-	if( FAILED( DirectX::CreateWICTextureFromFile(
+	//---------------------------------------------.
+	if( FAILED( 
+		DirectX::CreateWICTextureFromFile(
 		m_pDevice11,
 		wstr_file_name.c_str(),
 		nullptr,
 		&textures[keyName] ))){
+		_ASSERT_EXPR( false, "テクスチャ取得失敗" );
+		MessageBox( nullptr, "テクスチャ取得失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // メッシュの読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 {
-	LoadIndices( pMesh, meshData );	// インデックス情報.
+	// インデックス情報の取得.
+	LoadIndices( pMesh, meshData );
 
+	// 頂点数の取得.
 	int ctrlCount = pMesh->GetControlPointsCount();
+
 	// ウェイト.
 	std::vector<std::vector<float>> weights( ctrlCount );
 	// ボーンインデックス.
@@ -283,16 +324,19 @@ void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 	// スキン情報の取得.
 	LoadSkin( pMesh, meshData, weights, bones );
 
+	// ポリゴン数の取得.
 	int polygonCount = pMesh->GetPolygonCount();
-	// 頂点の数.
+	// 頂点のカウンター.
 	int vertexCounter = 0;
+
 	// ポリゴンの数分.
 	for( int i = 0; i < polygonCount; i++ ){
 		// ポリゴンのサイズ.
 		int polygonSize = pMesh->GetPolygonSize(i);
 		if( polygonSize != 3 ){
 			// 三角ポリゴンじゃない.
-			ERROR_MESSAGE("Not a triangular polygon");
+			_ASSERT_EXPR( false, "メッシュが三角じゃないです" );
+			MessageBox( nullptr, "メッシュが三角じゃないです", "Warning", MB_OK );
 			return;
 		}
 
@@ -318,15 +362,16 @@ void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 
 			// 頂点情報を追加.
 			meshData.Vertices.emplace_back( vertex );
+
 			// 頂点数を加算.
 			vertexCounter++;
 		}
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // インデックス情報読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadIndices( FbxMesh* pMesh, FBXMeshData& meshData )
 {
 	// ポリゴン数の取得.
@@ -340,9 +385,9 @@ void CFbxModelLoader::LoadIndices( FbxMesh* pMesh, FBXMeshData& meshData )
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // 頂点情報読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadVertices( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex )
 {
 	vertex.Pos.x = (float)pMesh->GetControlPoints()[ctrlPointIndex][0];
@@ -350,204 +395,210 @@ void CFbxModelLoader::LoadVertices( FbxMesh* pMesh, VERTEX& vertex, int ctrlPoin
 	vertex.Pos.z = (float)pMesh->GetControlPoints()[ctrlPointIndex][2];
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // 法線情報読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadNormals( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex, int vertexCounter )
 {
 	if( pMesh->GetElementNormalCount() < 1 ) return;
 
-	FbxGeometryElementNormal* leNormal = pMesh->GetElementNormal(0);
-	switch( leNormal->GetMappingMode() )
+	/************************************************
+	* DirectXの場合x値を反転させる必要あり.
+	**/
+
+	// 法線の取得.
+	FbxGeometryElementNormal* pNormal = pMesh->GetElementNormal(0);
+
+	// マッピングモードは法線がどのようにモデル表面に定義されているかを表す.
+	switch( pNormal->GetMappingMode() )
 	{
+	// eByControlPoint : 頂点に対しての法線.
 	case FbxGeometryElement::eByControlPoint:
 	{
-		switch( leNormal->GetReferenceMode() )
+		// インデックスの取得.
+		int index = pNormal->GetIndexArray().GetAt(ctrlPointIndex);
+
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
+		switch( pNormal->GetReferenceMode() )
 		{
+		// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
-		{
-			vertex.Normal.x = -(float)leNormal->GetDirectArray().GetAt(ctrlPointIndex)[0];
-			vertex.Normal.y = (float)leNormal->GetDirectArray().GetAt(ctrlPointIndex)[1];
-			vertex.Normal.z = (float)leNormal->GetDirectArray().GetAt(ctrlPointIndex)[2];
-		}
-		break;
+			vertex.Normal.x = -(float)pNormal->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			vertex.Normal.y =  (float)pNormal->GetDirectArray().GetAt(ctrlPointIndex)[1];
+			vertex.Normal.z =  (float)pNormal->GetDirectArray().GetAt(ctrlPointIndex)[2];
+			break;
 
+		// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			int id = leNormal->GetIndexArray().GetAt(ctrlPointIndex);
-			vertex.Normal.x = -(float)leNormal->GetDirectArray().GetAt(id)[0];
-			vertex.Normal.y = (float)leNormal->GetDirectArray().GetAt(id)[1];
-			vertex.Normal.z = (float)leNormal->GetDirectArray().GetAt(id)[2];
-		}
-		break;
-
-		default:
+			vertex.Normal.x = -(float)pNormal->GetDirectArray().GetAt(index)[0];
+			vertex.Normal.y =  (float)pNormal->GetDirectArray().GetAt(index)[1];
+			vertex.Normal.z =  (float)pNormal->GetDirectArray().GetAt(index)[2];
 			break;
 		}
 	}
-	break;
-
+	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{
-		switch (leNormal->GetReferenceMode())
+		// インデックスの取得.
+		int index = pNormal->GetIndexArray().GetAt(vertexCounter);
+
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
+		switch( pNormal->GetReferenceMode() )
 		{
+		// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
-		{
-			vertex.Normal.x = -(float)leNormal->GetDirectArray().GetAt(vertexCounter)[0];
-			vertex.Normal.y = (float)leNormal->GetDirectArray().GetAt(vertexCounter)[1];
-			vertex.Normal.z = (float)leNormal->GetDirectArray().GetAt(vertexCounter)[2];
-		}
-		break;
+			vertex.Normal.x = -(float)pNormal->GetDirectArray().GetAt(vertexCounter)[0];
+			vertex.Normal.y =  (float)pNormal->GetDirectArray().GetAt(vertexCounter)[1];
+			vertex.Normal.z =  (float)pNormal->GetDirectArray().GetAt(vertexCounter)[2];
+			break;
 
+		// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			int id = leNormal->GetIndexArray().GetAt(vertexCounter);
-			vertex.Normal.x = -(float)leNormal->GetDirectArray().GetAt(id)[0];
-			vertex.Normal.y = (float)leNormal->GetDirectArray().GetAt(id)[1];
-			vertex.Normal.z = (float)leNormal->GetDirectArray().GetAt(id)[2];
-		}
-		break;
-
-		default:
+			vertex.Normal.x = -(float)pNormal->GetDirectArray().GetAt(index)[0];
+			vertex.Normal.y =  (float)pNormal->GetDirectArray().GetAt(index)[1];
+			vertex.Normal.z =  (float)pNormal->GetDirectArray().GetAt(index)[2];
 			break;
 		}
 	}
-	break;
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // 頂点カラー読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadColors( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex, int vertexCounter )
 {
 	// 頂点カラーデータの数を確認.
-	int colorCount = pMesh->GetElementVertexColorCount();
-	if( colorCount == 0 ) return;
+	if( pMesh->GetElementVertexColorCount() == 0 ) return;
 
-	FbxGeometryElementVertexColor* vertexColors = pMesh->GetElementVertexColor(0);
-	switch( vertexColors->GetMappingMode() )
+	FbxGeometryElementVertexColor* pVertexColor = pMesh->GetElementVertexColor(0);
+
+	// マッピングモードは頂点カラーがどのようにモデル表面に定義されているかを表す.
+	switch( pVertexColor->GetMappingMode() )
 	{
+	// eByControlPoint : 頂点に対しての法線.
 	case FbxGeometryElement::eByControlPoint:
 	{
-		switch( vertexColors->GetReferenceMode() )
+		// インデックスの取得.
+		int index = pVertexColor->GetIndexArray().GetAt(ctrlPointIndex);
+
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
+		switch( pVertexColor->GetReferenceMode() )
 		{
+		// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
-		{
-			vertex.Color.x = -(float)vertexColors->GetDirectArray().GetAt(ctrlPointIndex)[0];
-			vertex.Color.y = (float)vertexColors->GetDirectArray().GetAt(ctrlPointIndex)[1];
-			vertex.Color.z = (float)vertexColors->GetDirectArray().GetAt(ctrlPointIndex)[2];
-		}
-		break;
+			vertex.Color.x = (float)pVertexColor->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			vertex.Color.y = (float)pVertexColor->GetDirectArray().GetAt(ctrlPointIndex)[1];
+			vertex.Color.z = (float)pVertexColor->GetDirectArray().GetAt(ctrlPointIndex)[2];
+			vertex.Color.w = (float)pVertexColor->GetDirectArray().GetAt(ctrlPointIndex)[3];
+			break;
 
+		// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			int id = vertexColors->GetIndexArray().GetAt(ctrlPointIndex);
-			vertex.Color.x = -(float)vertexColors->GetDirectArray().GetAt(id)[0];
-			vertex.Color.y = (float)vertexColors->GetDirectArray().GetAt(id)[1];
-			vertex.Color.z = (float)vertexColors->GetDirectArray().GetAt(id)[2];
-		}
-		break;
-
-		default:
+			vertex.Color.x = (float)pVertexColor->GetDirectArray().GetAt(index)[0];
+			vertex.Color.y = (float)pVertexColor->GetDirectArray().GetAt(index)[1];
+			vertex.Color.z = (float)pVertexColor->GetDirectArray().GetAt(index)[2];
+			vertex.Color.w = (float)pVertexColor->GetDirectArray().GetAt(index)[3];
 			break;
 		}
 	}
-	break;
-
+	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{
-		switch (vertexColors->GetReferenceMode())
+		// インデックスの取得.
+		int index = pVertexColor->GetIndexArray().GetAt(vertexCounter);
+
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
+		switch( pVertexColor->GetReferenceMode() )
 		{
+		// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
-		{
-			vertex.Color.x = (float)vertexColors->GetDirectArray().GetAt(vertexCounter)[0];
-			vertex.Color.y = (float)vertexColors->GetDirectArray().GetAt(vertexCounter)[1];
-			vertex.Color.z = (float)vertexColors->GetDirectArray().GetAt(vertexCounter)[2];
-		}
-		break;
+			vertex.Color.x = (float)pVertexColor->GetDirectArray().GetAt(vertexCounter)[0];
+			vertex.Color.y = (float)pVertexColor->GetDirectArray().GetAt(vertexCounter)[1];
+			vertex.Color.z = (float)pVertexColor->GetDirectArray().GetAt(vertexCounter)[2];
+			vertex.Color.w = (float)pVertexColor->GetDirectArray().GetAt(vertexCounter)[3];
+			break;
 
+		// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			int id = vertexColors->GetIndexArray().GetAt(vertexCounter);
-			vertex.Color.x = (float)vertexColors->GetDirectArray().GetAt(id)[0];
-			vertex.Color.y = (float)vertexColors->GetDirectArray().GetAt(id)[1];
-			vertex.Color.z = (float)vertexColors->GetDirectArray().GetAt(id)[2];
-		}
-		break;
-
-		default:
+			vertex.Color.x = (float)pVertexColor->GetDirectArray().GetAt(index)[0];
+			vertex.Color.y = (float)pVertexColor->GetDirectArray().GetAt(index)[1];
+			vertex.Color.z = (float)pVertexColor->GetDirectArray().GetAt(index)[2];
+			vertex.Color.w = (float)pVertexColor->GetDirectArray().GetAt(index)[3];
 			break;
 		}
 	}
-	break;
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // UV情報読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadUV( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex, int texUVIndex, int uvLayer )
 {
 	if( uvLayer >= 2 || pMesh->GetElementUVCount() <= uvLayer ) return;
 
-	FbxGeometryElementUV* pVertexUV = pMesh->GetElementUV( uvLayer );
+	/************************************************
+	* DirectXの場合UV座標のV値を反転させる必要あり.
+	**/
 
+	FbxGeometryElementUV* pVertexUV = pMesh->GetElementUV( uvLayer );
+	// マッピングモードはUVがどのようにモデル表面に定義されているかを表す.
 	switch( pVertexUV->GetMappingMode() )
 	{
+	// eByControlPoint : 頂点に対しての法線.
 	case FbxGeometryElement::eByControlPoint:
 	{
+		// インデックスの取得.
+		int index = pVertexUV->GetIndexArray().GetAt(ctrlPointIndex);
+
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
 		switch( pVertexUV->GetReferenceMode() )
 		{
+			// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
-		{
-			vertex.UV.x = (float)pVertexUV->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			vertex.UV.x =  (float)pVertexUV->GetDirectArray().GetAt(ctrlPointIndex)[0];
 			vertex.UV.y = -(float)pVertexUV->GetDirectArray().GetAt(ctrlPointIndex)[1];
-		}
-		break;
+			break;
+
+			// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			int id = pVertexUV->GetIndexArray().GetAt(ctrlPointIndex);
-			vertex.UV.x = (float)pVertexUV->GetDirectArray().GetAt(id)[0];
-			vertex.UV.y = -(float)pVertexUV->GetDirectArray().GetAt(id)[1];
-		}
-		break;
-		default:
+			vertex.UV.x =  (float)pVertexUV->GetDirectArray().GetAt(index)[0];
+			vertex.UV.y = -(float)pVertexUV->GetDirectArray().GetAt(index)[1];
 			break;
 		}
 	}
-	break;
-
+	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{
-		switch (pVertexUV->GetReferenceMode())
+		// リファレンスモードは法線がどのように配列に格納されているかを表す.
+		switch( pVertexUV->GetReferenceMode() )
 		{
+			// eDIRECT : 順番に格納している.
 		case FbxGeometryElement::eDirect:
+			// eIndexToDirect : インデックスに対応した並び.
 		case FbxGeometryElement::eIndexToDirect:
-		{
-			vertex.UV.x = (float)pVertexUV->GetDirectArray().GetAt(texUVIndex)[0];
+			vertex.UV.x =  (float)pVertexUV->GetDirectArray().GetAt(texUVIndex)[0];
 			vertex.UV.y = -(float)pVertexUV->GetDirectArray().GetAt(texUVIndex)[1];
-		}
-		break;
-		default:
 			break;
 		}
 	}
-	break;
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // スキン情報読み込み.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& bones )
 {
 	// ダウンキャストしてスキン情報を取得.
 	FbxSkin* pSkin = (FbxSkin*)pMesh->GetDeformer( 0, FbxDeformer::eSkin );
+	// スキン情報が無ければ終了.
 	if( pSkin == nullptr ) return;
 
 	m_MeshClusterData.emplace_back();
 
+	// ※Cluster == Bone.
 	// ボーンの数.
 	int boneCount = pSkin->GetClusterCount();
 	for( int boneIndex = 0; boneIndex < boneCount; boneIndex++ ){
@@ -558,8 +609,8 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 		m_MeshClusterData.back().ClusterKey[pNode->GetName()] = pNode;
 		m_MeshClusterData.back().ClusterName.emplace_back( pNode->GetName() );
 
-		FbxAMatrix bindPoseMatrix;
-		FbxAMatrix newbindpose;
+		FbxAMatrix bindPoseMatrix;	// 初期ボーン行列.
+		FbxAMatrix newbindpose;		// 初期ポーズ.
 
 		pCluster->GetTransformLinkMatrix( bindPoseMatrix );
 		pCluster->GetTransformMatrix( newbindpose );
@@ -571,12 +622,13 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 		// ボーンインデックスとウェイトの設定.
 		int*	boneVertexIndices = pCluster->GetControlPointIndices();
 		double* boneVertexWeights = pCluster->GetControlPointWeights();
+		// ボーンに影響するポリゴンの数.
 		int	numBoneVertexIndices = pCluster->GetControlPointIndicesCount();
 		for( int boneVertexIndex = 0; boneVertexIndex < numBoneVertexIndices; boneVertexIndex++ ){
-			int cpIndex = boneVertexIndices[boneVertexIndex];
-			float boneWeight = (float)boneVertexWeights[boneVertexIndex];
-			weights[cpIndex].emplace_back(boneWeight);
-			bones[cpIndex].emplace_back(boneIndex);
+			int cpIndex			= boneVertexIndices[boneVertexIndex];
+			float boneWeight	= (float)boneVertexWeights[boneVertexIndex];
+			weights[cpIndex].emplace_back( boneWeight );
+			bones[cpIndex].emplace_back( boneIndex );
 		}
 	}
 	// ウェイトを重い順にソート.
@@ -598,11 +650,13 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 	}
 }
 
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 // ウェイトとボーンの設定.
-//-----------------------------------------.
+//////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::SetBoneWeight( VERTEX& vertex, const std::vector<float>& weight, const std::vector<int>& bone )
 {
+	// ウェイトが 0から重い順になっているはずなので.
+	// 配列の3つ目から入れていく(最大ウェイト数 : 4つ).
 	switch( weight.size() )
 	{
 	default:
@@ -624,7 +678,9 @@ void CFbxModelLoader::SetBoneWeight( VERTEX& vertex, const std::vector<float>& w
 	}
 }
 
+//////////////////////////////////////////////////////////////////////.
 // 頂点バッファ作成.
+//////////////////////////////////////////////////////////////////////.
 HRESULT CFbxModelLoader::CreateVertexBuffers( FBXMeshData& meshData )
 {
 	D3D11_BUFFER_DESC bd;
@@ -640,14 +696,17 @@ HRESULT CFbxModelLoader::CreateVertexBuffers( FBXMeshData& meshData )
 	data.SysMemSlicePitch	= 0;
 
 	// 頂点バッファの作成.
-	if( FAILED( m_pDevice11->CreateBuffer(
-		&bd, &data, &meshData.pVertexBuffer ))){
+	if( FAILED( m_pDevice11->CreateBuffer( &bd, &data, &meshData.pVertexBuffer ))){
+		_ASSERT_EXPR( false, "頂点バッファの作成失敗" );
+		MessageBox( nullptr, "頂点バッファの作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
 }
 
+//////////////////////////////////////////////////////////////////////.
 // インデックスバッファ作成.
+//////////////////////////////////////////////////////////////////////.
 HRESULT CFbxModelLoader::CreateIndexBuffers( FBXMeshData& meshData )
 {
 	D3D11_BUFFER_DESC bd;
@@ -663,8 +722,9 @@ HRESULT CFbxModelLoader::CreateIndexBuffers( FBXMeshData& meshData )
 	data.SysMemSlicePitch	= 0;
 
 	// インデックスバッファの作成.
-	if( FAILED( m_pDevice11->CreateBuffer(
-		&bd, &data, &meshData.pIndexBuffer ))){
+	if( FAILED( m_pDevice11->CreateBuffer( &bd, &data, &meshData.pIndexBuffer ))){
+		_ASSERT_EXPR( false, "インデックスバッファの作成失敗" );
+		MessageBox( nullptr, "インデックスバッファの作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;

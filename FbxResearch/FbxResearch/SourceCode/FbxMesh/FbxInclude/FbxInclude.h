@@ -37,7 +37,37 @@
 
 #endif	// #if _DLL.
 
-#include "..\..\Global.h"
+#include <D3D11.h>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+
+// ƒ‰ƒCƒuƒ‰ƒŠ“Ç‚Ýž‚Ý.
+#pragma comment( lib, "winmm.lib" )
+#pragma comment( lib, "d3d11.lib" )
+#pragma comment( lib, "d3dcompiler.lib" )
+
+//===========================================================
+//	ƒ}ƒNƒ.
+//===========================================================
+// ‰ð•ú.
+#ifndef SAFE_RELEASE
+#define SAFE_RELEASE(p)			if(p!=nullptr){(p)->Release();(p)=nullptr;}
+#endif	// #ifndef SAFE_RELEASE.
+
+// ”jŠü.
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p)			if(p!=nullptr){delete (p);(p)=nullptr;}
+#endif	// #ifndef SAFE_DELETE.
+
+// ”jŠü(”z—ñ).
+#ifndef SAFE_DELETE_ARRAY
+#define SAFE_DELETE_ARRAY(p)	if(p!=nullptr){delete[] (p);(p) = nullptr;}
+#endif	// #ifndef SAFE_DELETE_ARRAY.
+
+// ”j‰ó.
+#ifndef SAFE_DESTROY
+#define SAFE_DESTROY(p)			if(p!=nullptr){(p)->Destroy();(p)=nullptr;}
+#endif	// #ifndef SAFE_DESTROY.
 
 // FbxMatrix‚ðDirectX::XMMATRIX‚É•ÏŠ·‚·‚é.
 DirectX::XMMATRIX FbxMatrixConvertDXMMatrix( const FbxMatrix& matrix );

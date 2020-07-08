@@ -30,6 +30,7 @@ struct Skin
 	float4 Pos;
 	float4 Normal;
 };
+
 // 頂点シェーダーの入力パラメータ.
 struct VS_INPUT
 {
@@ -40,6 +41,7 @@ struct VS_INPUT
 	uint4	Bones		: BONE_INDEX;
 	float4	Weights		: BONE_WEIGHT;
 };
+
 // 頂点シェーダーの出力パラメータ.
 struct VS_OUTPUT
 {
@@ -129,8 +131,8 @@ PS_OUTPUT PS_Main(VS_OUTPUT input) : SV_Target0
     float4 Color = ambient + diffuse + specular;
 	
 	PS_OUTPUT output = (PS_OUTPUT)0;
-//	output.Color = g_Texture.Sample( g_samLinear, input.UV );
-	output.Color = Color;
+	output.Color = g_Texture.Sample( g_samLinear, input.UV );
+//	output.Color = Color;
 	output.Normal = input.Normal;
 	output.ZDepth = input.ZDepth.z / input.ZDepth.w;
 	

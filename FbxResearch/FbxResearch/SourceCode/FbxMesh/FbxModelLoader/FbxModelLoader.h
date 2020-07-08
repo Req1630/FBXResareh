@@ -1,17 +1,23 @@
-#pragma once
+#ifndef FBX_MODEL_LOADER_H
+#define FBX_MODEL_LOADER_H
 
-#include "..\..\Global.h"
 #include "..\FbxInclude\FbxInclude.h"
+#include "..\FbxMeshData.h"
+#include "..\FbxAnimation\FbxAnimationLoader.h"
 
 #include <vector>
 #include <unordered_map>
 #include <set>
 
-#include "..\FbxMeshData.h"
-#include "..\FbxAnimation/FbxAnimationLoader.h"
-
 class CFbxModel;	// Fbxモデルクラス.
 
+/************************************************************************
+* CFbxModelを読み込むためのクラス.
+*------------------------------------------------------------------------
+*	モデルは多角ポリゴンでも行けるが、読み込みが遅くなるので、
+*		グラフィッカーに頼んで三角ポリゴンで出力してもらった方が良い.
+*	モデルとテクスチャは同じ階層に入れて置くこと.
+***/
 class CFbxModelLoader
 {
 public:
@@ -19,23 +25,23 @@ public:
 	~CFbxModelLoader();
 
 	//-----------------------------------------.
-	//				作成.
+	//		作成.
 	//-----------------------------------------.
-	HRESULT Create( ID3D11DeviceContext* pContext11 );
+	HRESULT Create( ID3D11Device* pDevice );
 
 	//-----------------------------------------.
-	//				破壊.
+	//		破壊.
 	//-----------------------------------------.
 	void Destroy();
 
 	//-----------------------------------------.
-	//			モデルの読み込み.
+	//		モデルの読み込み.
 	//-----------------------------------------.
 	HRESULT LoadModel( CFbxModel* pModelData, const char* fileName );
 	
 private:
 	//-----------------------------------------.
-	//			マテリアル系.
+	//		マテリアルの読み込み.
 	//-----------------------------------------.
 
 	// マテリアル取得.
@@ -65,26 +71,28 @@ private:
 	void SetBoneWeight( VERTEX& vertex, const std::vector<float>& weight, const std::vector<int>& bone );
 
 	//-----------------------------------------.
-	//		描画用データの作成系.
+	//		描画用データの作成.
 	//-----------------------------------------.
 
 	// 頂点バッファ作成.
 	HRESULT CreateVertexBuffers( FBXMeshData& meshData );
 	// インデックスバッファ作成.
 	HRESULT CreateIndexBuffers( FBXMeshData& meshData );
+
+
 private:
 	/***************************************
 	*			DirectX11.
 	***************************************/
 	ID3D11Device*			m_pDevice11;	// デバイス11.
-	ID3D11DeviceContext*	m_pContext11;	// コンテキスト11.
+
 	/***************************************
 	*			FBX SDK.
 	***************************************/
 	FbxManager* m_pFbxManager;	// FBXマネージャー.
 	FbxScene*	m_pFbxScene;	// FBXシーンオブジェクト.
-	std::unique_ptr<CFbxAnimationLoader> m_pAnimLoader;	// アニメーション読み込みクラス.
 	std::vector<FBXMeshClusterData>	m_MeshClusterData;	// メッシュのクラスター情報.
-
-	std::vector<FbxSkeleton*>	m_Skeletons;	// スケルトン情報.
+	std::vector<FbxSkeleton*>		m_Skeletons;		// スケルトン情報.
 };
+
+#endif	// #ifndef FBX_MODEL_LOADER_H.
