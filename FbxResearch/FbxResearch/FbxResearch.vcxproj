@@ -141,6 +141,7 @@
     <ClCompile Include="SourceCode\ImGui\imgui_impl_dx11.cpp" />
     <ClCompile Include="SourceCode\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="SourceCode\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="SourceCode\Light\Light.cpp" />
     <ClCompile Include="SourceCode\Main\Main.cpp" />
     <ClCompile Include="SourceCode\Main\WinMain.cpp" />
     <ClCompile Include="SourceCode\Sprite\CSprite.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="SourceCode\ImGui\imstb_rectpack.h" />
     <ClInclude Include="SourceCode\ImGui\imstb_textedit.h" />
     <ClInclude Include="SourceCode\ImGui\imstb_truetype.h" />
+    <ClInclude Include="SourceCode\Light\Light.h" />
     <ClInclude Include="SourceCode\Main\Main.h" />
     <ClInclude Include="SourceCode\Sprite\CSprite.h" />
     <ClInclude Include="SourceCode\Utility\FileManager\FileManager.h" />

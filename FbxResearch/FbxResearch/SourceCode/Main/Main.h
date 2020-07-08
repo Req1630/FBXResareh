@@ -11,11 +11,14 @@
 //	ëOï˚êÈåæ.
 class CDirectX11;
 class CCamera;
+class CLight;
 class CFrameRate;
+class CSprite;
 
 class CFbxMesh;
 class CFbxRenderer;
 class CFbxModelLoader;
+class CFbxAnimationLoader;
 class CFbxModel;
 //-------------------------.
 
@@ -54,14 +57,17 @@ private:
 	HWND m_hWnd;
 	std::unique_ptr<CDirectX11>	m_pDirectX11;	// DirectX11.
 	std::unique_ptr<CFrameRate>	m_pFPS;
-	std::unique_ptr<CFbxMesh>	m_pFbxMesh;
-	std::unique_ptr<CFbxMesh>	m_pFbxGround;
 	std::unique_ptr<CCamera>	m_pCamera;
-	CFbxAnimationController		m_Ac;
+	std::unique_ptr<CLight>		m_pLight;
+	std::unique_ptr<CSprite>	m_Sprite;
 
-	std::unique_ptr<CFbxRenderer>		m_FbxRenderer;
-	std::unique_ptr<CFbxModelLoader>	m_FbxModelLoader;
-	std::shared_ptr<CFbxModel>			m_FbxModel;
+	std::unique_ptr<CFbxRenderer>			m_FbxRenderer;
+	std::unique_ptr<CFbxModelLoader>		m_FbxModelLoader;
+	std::unique_ptr<CFbxAnimationLoader>	m_fbxAnimLoader;
+	std::shared_ptr<CFbxModel>				m_FbxModel;
+	std::shared_ptr<CFbxModel>				m_FbxGround;
+
+	CFbxAnimationController	m_AC;
 
 };
 

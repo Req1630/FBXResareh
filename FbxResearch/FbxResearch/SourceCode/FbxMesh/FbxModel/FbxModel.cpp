@@ -32,6 +32,7 @@ std::vector<FBXMeshData>& CFbxModel::GetMeshData()
 void CFbxModel::ReSizeMeshData( const int& size )
 { 
 	m_MeshData.resize(size);
+
 }
 
 //-------------------------------------.

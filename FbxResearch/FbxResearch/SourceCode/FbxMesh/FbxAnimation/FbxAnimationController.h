@@ -32,7 +32,9 @@ public:
 	void AddAnimationData( const std::vector<SAnimationData>& animationData )
 	{
 		for( auto& a : animationData )
-			m_AnimDataList.emplace_back( a ); 
+			m_AnimDataList.emplace_back( a );
+		if( m_AnimDataList.empty() == true ) return;
+		m_NowAnimation = m_AnimDataList.front();
 	}
 
 private:

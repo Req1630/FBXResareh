@@ -14,7 +14,7 @@ private: //------- 定数 -------.
 	const float FLOAT_WND_H = static_cast<float>(WND_H);	// (float)画面幅.
 	const float INITIAL_VIEWING_ANGLE	= static_cast<float>(3.141519/4.0);	// 初期視野角.
 	const float SCREEN_ASPECT_RATIO		= FLOAT_WND_W/FLOAT_WND_H;			// 画面アスペクト比.
-	const float INITIAL_MAX_CLIPPING_DISTANCE = 100.0f;						// 初期最大描画距離.
+	const float INITIAL_MAX_CLIPPING_DISTANCE = 1000.0f;					// 初期最大描画距離.
 	const float INITIAL_MIN_CLIPPING_DISTANCE = 0.1f;						// 初期最小描画距離.
 	const DirectX::XMFLOAT3 VIEW_UP_VECTOR	= { 0.0f, 1.0f, 0.0f };	// 上方向ベクトル.
 

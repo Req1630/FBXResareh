@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <set>
 
+class CFbxAnimationController;
 
 // メッシュのクラスター(ボーン)の情報.
 struct FBXMeshClusterData
@@ -25,9 +26,12 @@ public:
 	~CFbxAnimationLoader();
 
 	// 作成.
-	HRESULT Create( const char* fileName );
+	HRESULT Create();
 	// 破壊.
 	void Destroy();
+
+	// アニメーションの読み込み.
+	HRESULT LoadAnim( CFbxAnimationController* pAc, const char* fileName );
 
 	// アニメーションの読み込み.
 	HRESULT LoadAnimationData(
