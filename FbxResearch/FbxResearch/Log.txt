@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-[2020/7/7 18:51] >> App launch
-=======
-[2020/7/7 0:53] >> App launch
->>>>>>> 4e84221a89b373eac3fc0ec236e888e3d45e2fa9
+[2020/7/8 15:8] >> App launch
 
 
-[18:52:11] >> App End
+[15:9:7] >> App End

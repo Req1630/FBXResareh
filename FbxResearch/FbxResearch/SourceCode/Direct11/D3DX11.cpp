@@ -253,7 +253,6 @@ HRESULT CDirectX11::InitDSTex()
 		memset( &rtvDesc, 0, sizeof( rtvDesc ) );
 		rtvDesc.Format             = DXGI_FORMAT_R11G11B10_FLOAT;
 		rtvDesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
-
 		// RenderTargetViewì¬.
 		if( FAILED( m_pDevice11->CreateRenderTargetView( GBufferTex[i], &rtvDesc, &GBufferRTV[i] ) )){
 			_ASSERT_EXPR( false, L"RenderTargetViewì¬¸”s" );

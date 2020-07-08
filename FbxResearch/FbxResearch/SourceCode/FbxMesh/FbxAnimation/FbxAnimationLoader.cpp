@@ -1,4 +1,5 @@
 #include "FbxAnimationLoader.h"
+#include "FbxAnimationController.h"
 
 CFbxAnimationLoader::CFbxAnimationLoader()
 	: m_pFbxManager		( nullptr )
@@ -15,7 +16,7 @@ CFbxAnimationLoader::~CFbxAnimationLoader()
 //-----------------------------------------.
 // 作成.
 //-----------------------------------------.
-HRESULT CFbxAnimationLoader::Create( const char* fileName )
+HRESULT CFbxAnimationLoader::Create()
 {
 	//------------------------------.
 	// マネージャーの作成.
@@ -25,7 +26,32 @@ HRESULT CFbxAnimationLoader::Create( const char* fileName )
 		ERROR_MESSAGE( "FbxManager Create Failure." );
 		return E_FAIL;
 	}
+	//------------------------------.
+	// シーンオブジェクトの作成.
+	//------------------------------.
+	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
+	if( m_pFbxScene == nullptr ){
+		ERROR_MESSAGE( "FbxScene Create Failure." );
+		return E_FAIL;
+	}
 
+	return S_OK;
+}
+
+//-----------------------------------------.
+// 破壊.
+//-----------------------------------------.
+void CFbxAnimationLoader::Destroy()
+{
+	SAFE_DESTROY( m_pFbxScene );
+	SAFE_DESTROY( m_pFbxManager );
+}
+
+//-----------------------------------------.
+// アニメーションの読み込み.
+//-----------------------------------------.
+HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char* fileName )
+{
 	//------------------------------.
 	// インポーターの作成.
 	//------------------------------.
@@ -42,15 +68,6 @@ HRESULT CFbxAnimationLoader::Create( const char* fileName )
 	FbxString fbxFileName( fileName );
 	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
 		ERROR_MESSAGE( "FbxFile Loading Failure." );
-		return E_FAIL;
-	}
-
-	//------------------------------.
-	// シーンオブジェクトの作成.
-	//------------------------------.
-	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
-	if( m_pFbxScene == nullptr ){
-		ERROR_MESSAGE( "FbxScene Create Failure." );
 		return E_FAIL;
 	}
 
@@ -78,36 +95,35 @@ HRESULT CFbxAnimationLoader::Create( const char* fileName )
 	//-----------------------------------.
 	// FbxSkeletonを取得.
 	int skeltonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
+	m_Skeletons.clear();
+	m_Skeletons.resize(skeltonNum);
 	for( int i = 0; i < skeltonNum; i++ ){
-		m_Skeletons.emplace_back( m_pFbxScene->GetSrcObject<FbxSkeleton>(i) );
+		m_Skeletons[i] = m_pFbxScene->GetSrcObject<FbxSkeleton>(i);
 	}
+
 	//-----------------------------------.
 	// FbxMeshの数を取得.
 	//-----------------------------------.
 	// FbxMeshを取得.
 	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
+	m_MeshClusterData.clear();
+	m_MeshClusterData.resize( meshNum );
 	for( int i = 0; i < meshNum; i++ ){
-		m_MeshClusterData.emplace_back();
-		LoadSkin( m_pFbxScene->GetSrcObject<FbxMesh>(i), m_MeshClusterData.back() );
+		LoadSkin( m_pFbxScene->GetSrcObject<FbxMesh>(i), m_MeshClusterData[i] );
 	}
 	//-----------------------------------.
 	//	アニメーションフレームの取得.
 	//-----------------------------------.
 	GetAnimationFrame( m_pFbxScene );
 
+	if( m_AnimDataList.empty() == false ){
+		pAc->AddAnimationData( m_AnimDataList );
+	}
+
 	// インポーターの解放.
 	SAFE_DESTROY( pFbxImpoter );
 
 	return S_OK;
-}
-
-//-----------------------------------------.
-// 破壊.
-//-----------------------------------------.
-void CFbxAnimationLoader::Destroy()
-{
-	SAFE_DESTROY( m_pFbxScene );
-	SAFE_DESTROY( m_pFbxManager );
 }
 
 //-----------------------------------------.
@@ -159,6 +175,7 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 	FbxNode* pNode = pScene->GetRootNode();
 	// アニメーションの数を取得.
 	int stackCount = pScene->GetSrcObjectCount<FbxAnimStack>();
+	m_AnimDataList.clear();
 	m_AnimDataList.resize( stackCount );
 
 	// アニメーションの数分.
@@ -194,6 +211,15 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 
 		// アニメーションのフレーム時の行列を取得.
 		GetAnimationFrameMatrix( animData, timeSpan, pNode );
+
+		
+	}
+	for( size_t i = 0; i < m_AnimDataList.size(); i++ ){
+		if( m_AnimDataList[i].FrameList.back().size() <= m_AnimDataList[i].FrameRate ){
+			m_AnimDataList[i] = m_AnimDataList.back();
+			m_AnimDataList.pop_back();
+			i--;
+		}
 	}
 }
 

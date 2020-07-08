@@ -5,6 +5,8 @@
 
 class CFbxModel;
 class CFbxAnimationController;
+class CCamera;
+class CLight;
 
 class CFbxRenderer
 {
@@ -21,6 +23,9 @@ class CFbxRenderer
 	{
 		DirectX::XMMATRIX mW;	// ワールド行列.
 		DirectX::XMMATRIX mWVP;	// World,View,Proj の合成変換行列.
+		DirectX::XMMATRIX mLightWVP;
+		DirectX::XMFLOAT4 CameraPos;
+		DirectX::XMFLOAT4 LightDir;
 		DirectX::XMFLOAT4 IsAnimation;
 	};
 	//======================================.
@@ -65,8 +70,8 @@ public:
 	//-----------------------------------------.
 	void Render(
 		CFbxModel& mdoel,
-		const DirectX::XMMATRIX& view, 
-		const DirectX::XMMATRIX& proj,
+		CCamera& camera,
+		CLight& light,
 		CFbxAnimationController* pAc = nullptr );
 
 private:

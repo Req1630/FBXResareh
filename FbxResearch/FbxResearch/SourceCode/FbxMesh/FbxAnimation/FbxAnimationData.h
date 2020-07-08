@@ -71,7 +71,6 @@ struct stAnimationData
 		FbxMatrix m;
 		// ƒtƒŒ[ƒ€‚Ì”.
 		int frameSize = static_cast<int>(FrameList.size());
-
 		/*
 		auto outFrameMatrix = [&]( const int& minIndex, const int& maxIndex, FbxMatrix* outMat )
 		{

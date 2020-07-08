@@ -1,6 +1,8 @@
 #include "FbxRenderer.h"
 #include "..\FbxModel\FbxModel.h"
 #include "..\FbxAnimation\FbxAnimationController.h"
+#include "..\..\Camera\Camera.h"
+#include "..\..\Light\Light.h"
 
 CFbxRenderer::CFbxRenderer()
 {
@@ -54,12 +56,13 @@ void CFbxRenderer::Destroy()
 //-----------------------------------------.
 void CFbxRenderer::Render(
 	CFbxModel& mdoel,
-	const DirectX::XMMATRIX& view, 
-	const DirectX::XMMATRIX& proj,
+	CCamera& camera,
+	CLight& light,
 	CFbxAnimationController* pAc )
 {
 	// ワールド行列取得.
 	DirectX::XMMATRIX World	= mdoel.GetWorldMatrix();
+	DirectX::XMMATRIX WVP = World * camera.GetViewMatrix() * camera.GetProjMatrix();
 	int meshNo = 0;
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
@@ -98,9 +101,20 @@ void CFbxRenderer::Render(
 			// ワールド行列を転置して渡す.
 			cb.mW	= DirectX::XMMatrixTranspose( World );
 			// world, View, Proj を転置して渡す.
-			cb.mWVP	= DirectX::XMMatrixTranspose( World * view * proj );
+			cb.mWVP	= DirectX::XMMatrixTranspose( WVP );
+			// ライトの wvp　を転置して渡す.
+			cb.mLightWVP = DirectX::XMMatrixTranspose( light.GetVP() );
+			// カメラの座標を渡す.
+			cb.CameraPos = { camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z, 0.0f };
+			// ライトの方向を渡す.
+			cb.LightDir = light.GetDirection();
 			// アニメーションがあるかどうか( 0.0 : 無し, 1.0 : 有り).
-			cb.IsAnimation.x = mdoel.GetPtrAC() == nullptr ? 0.0f : 1.0f;
+			if( pAc == nullptr ){
+				cb.IsAnimation.x = mdoel.GetPtrAC() == nullptr ? 0.0f : 1.0f;
+			} else {
+				cb.IsAnimation.x = pAc == nullptr ? 0.0f : 1.0f;
+			}
+
 			memcpy_s(
 				pdata.pData, pdata.RowPitch,
 				(void*)(&cb), sizeof(cb) );
@@ -154,10 +168,10 @@ void CFbxRenderer::AnimMatrixCalculation(
 	FBXMeshData& meshData,
 	CFbxAnimationController* pAc  )
 {
-	// アニメーションデータが無ければ終了.
-	if( mdoel.GetPtrAC() == nullptr ) return;
 	CBUFFER_PER_BONE cb;
 	if( pAc == nullptr ){
+		// アニメーションデータが無ければ終了.
+		if( mdoel.GetPtrAC() == nullptr ) return;
 		FbxMatrix globalPosition = mdoel.GetPtrAC()->GetFrameMatrix( meahNo );
 		
 		int boneIndex = 0;
@@ -169,6 +183,7 @@ void CFbxRenderer::AnimMatrixCalculation(
 			cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
 			boneIndex++;
 		}
+		
 	} else {
 		FbxMatrix globalPosition = pAc->GetFrameMatrix( meahNo );
 

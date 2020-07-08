@@ -8,6 +8,9 @@ cbuffer per_mesh : register( b0 )
 {
 	matrix	g_W;			// ワールド.
 	matrix	g_WVP;			// ワールド、ビュー、プロジェクション.
+	matrix	g_LightWVP;
+	float4	g_CameraPos;
+	float4	g_LightDir;
 	float4	g_IsAnimation;
 };
 cbuffer per_mesh : register( b1 )
@@ -43,7 +46,10 @@ struct VS_OUTPUT
     float4 Pos      : SV_POSITION;
     float4 Normal   : NORMAL;
     float4 Color    : COLOR;
-	float2 UV		: TEXCOORD;
+	float2 UV		: TEXCOORD0;
+	float4 ZDepth	: TEXCOORD1;
+	float4 LightDir	: TEXCOORD2;
+	float4 EyeDir	: TEXCOORD3;
 };
 
 Skin SiknVert( VS_INPUT input )
@@ -81,18 +87,17 @@ VS_OUTPUT VS_Main( VS_INPUT input )
 	}
 	output.Normal.w = 0.0f;
 	
-	float4 lightDir = { 0.4f, -0.5f, 0.0f, 0.0f };
-	float4 viewDir = { 0.0f, 0.0f, 1.0f, 0.0f };
-	lightDir = normalize(lightDir);
-	viewDir = normalize(viewDir);
-	float NL = saturate(dot(output.Normal, lightDir));
-	
-	float4 Reflect = normalize(2 * NL*output.Normal - lightDir);
-	float4 Specular = pow(saturate(dot(Reflect, viewDir)), 4);
-	
-	output.Color = g_vDiffuse * NL + Specular * g_vSpecular;
-	output.Color *= input.Color;
+	output.Color = input.Color;
 	output.UV = input.UV;
+	
+	float4 pos = mul(input.Pos, g_W);
+	output.EyeDir = normalize( g_CameraPos - pos );
+	
+	pos = mul(pos, g_LightWVP);
+	output.ZDepth = pos;
+	
+	output.LightDir = normalize( g_LightDir );
+	
     return output;
 }
 
@@ -108,13 +113,26 @@ struct PS_OUTPUT
 //--------------------------------.
 PS_OUTPUT PS_Main(VS_OUTPUT input) : SV_Target0
 {
-	float4 color = { 1.0f, 0.0f, 0.0f, 1.0f };
-	color = g_Texture.Sample(g_samLinear, input.UV) / 2.0f + input.Color / 2.0f;
+	// 環境光　①.
+    float4 ambient = g_vAmbient;
+
+	// 拡散反射光 ②.
+    float NL = saturate( dot( input.Normal, input.LightDir) );
+    float4 diffuse = ( g_vDiffuse / 2 + g_Texture.Sample( g_samLinear, input.UV ) ) * NL;
+
+	// 鏡面反射光 ③.
+    float4 reflect = normalize( 1 * NL * input.Normal - input.LightDir );
+    float4 specular =
+		pow( saturate( dot( reflect, input.EyeDir )), 4 ) * g_vSpecular;
+
+	// フォンモデル最終色　①②③の合計.
+    float4 Color = ambient + diffuse + specular;
 	
 	PS_OUTPUT output = (PS_OUTPUT)0;
-	output.Color = color;
+//	output.Color = g_Texture.Sample( g_samLinear, input.UV );
+	output.Color = Color;
 	output.Normal = input.Normal;
-	output.ZDepth = input.Pos.z / input.Pos.w;
+	output.ZDepth = input.ZDepth.z / input.ZDepth.w;
 	
 	return output;
 }

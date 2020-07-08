@@ -60,7 +60,7 @@ VS_OUTPUT VS_MainUI(
 float4 PS_Main(VS_OUTPUT input) : SV_Target
 {
     float4 color = g_Texture0.Sample(g_samLinear, input.Tex);
-    color.a *= g_Color.a;
+	
     return color;
 }
 
@@ -82,25 +82,25 @@ float4 PS_MainLast(VS_OUTPUT input) : SV_Target
 //		color.rgb - fmod(color.rgb, 0.25f), color.a );
 	
 	// ぼかし.
-//	float w, h, levels;
-//	g_Texture0.GetDimensions( 0, w, h,levels );
+	//float w, h, levels;
+	//g_Texture0.GetDimensions( 0, w, h,levels );
 	
-//	const float s = 4.0f;
-//	float dx = 1.0f / w;
-//	float dy = 1.0f / h;
-//	float4 ref = float4( 0.0f, 0.0f, 0.0f, 0.0f );
+	//const float s = 4.0f;
+	//float dx = 1.0f / w;
+	//float dy = 1.0f / h;
+	//float4 ref = float4( 0.0f, 0.0f, 0.0f, 0.0f );
 	
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx, -s*dy));	// 左上.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx, -s*dy));	// 上.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx, -s*dy));	// 右上.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx,  0*dy));	// 左.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx,  0*dy));	// 自分.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx,  0*dy));	// 右.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx,  s*dy));	// 左下.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx,  s*dy));	// 下.
-//	ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx,  s*dy));	// 右下.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx, -s*dy));	// 左上.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx, -s*dy));	// 上.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx, -s*dy));	// 右上.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx,  0*dy));	// 左.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx,  0*dy));	// 自分.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx,  0*dy));	// 右.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2(-s*dx,  s*dy));	// 左下.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( 0*dx,  s*dy));	// 下.
+	//ref += g_Texture0.Sample( g_samLinear, input.Tex+float2( s*dx,  s*dy));	// 右下.
 
-//	return ref / 9.0f;
+	//return ref / 9.0f;
 	
 	// エンボス加工.
 //	float w, h, levels;
@@ -144,7 +144,7 @@ float4 PS_MainLast(VS_OUTPUT input) : SV_Target
 
 //	return ref;
 	
-		// シャープネス.
+	// 輪郭線.
 	float w, h, levels;
 	g_Texture0.GetDimensions( 0, w, h,levels );
 	
@@ -152,17 +152,17 @@ float4 PS_MainLast(VS_OUTPUT input) : SV_Target
 	float dx = 1.0f / w;
 	float dy = 1.0f / h;
 	float4 ref = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	ref += g_Texture2.Sample(g_samLinear, input.Tex + float2(  0 * dx, -s * dy)) * -1; // 上.
+	ref += g_Texture2.Sample(g_samLinear, input.Tex + float2( -s * dx,  0 * dy)) * -1; // 左.
+	ref += g_Texture2.Sample(g_samLinear, input.Tex + float2(  0 * dx,  0 * dy)) * 4; // 自分.
+	ref += g_Texture2.Sample(g_samLinear, input.Tex + float2(  s * dx,  0 * dy)) * -1; // 右.
+	ref += g_Texture2.Sample(g_samLinear, input.Tex + float2(  0 * dx,  s * dy)) * -1; // 下.
 	
-	ref += g_Texture1.Sample(g_samLinear, input.Tex + float2(  0 * dx, -s * dy)) * -1; // 上.
-	ref += g_Texture1.Sample(g_samLinear, input.Tex + float2( -s * dx,  0 * dy)) * -1; // 左.
-	ref += g_Texture1.Sample(g_samLinear, input.Tex + float2(  0 * dx,  0 * dy)) * 4; // 自分.
-	ref += g_Texture1.Sample(g_samLinear, input.Tex + float2(  s * dx,  0 * dy)) * -1; // 右.
-	ref += g_Texture1.Sample(g_samLinear, input.Tex + float2(  0 * dx,  s * dy)) * -1; // 下.
-
 	float Y = dot(ref.rgb, float3(0.5, 0.5, 0.5));
 	Y = pow( 1.0f - Y, 10.0f );
 	Y = step( 0.1f, Y );
 	color *= Y;
+	
 	return color;
 
 }
