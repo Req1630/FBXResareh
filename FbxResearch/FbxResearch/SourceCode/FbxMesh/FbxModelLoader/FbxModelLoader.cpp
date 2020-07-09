@@ -151,6 +151,7 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// FbxMeshの数を取得.
 	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
 	int meshNo = 0;
+	m_MeshClusterData.clear();
 	pModelData->ReSizeMeshData( meshNum );
 	for( auto& m : pModelData->GetMeshData() ){
 		// メッシュデータの取得.

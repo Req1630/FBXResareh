@@ -41,6 +41,9 @@ public:
 	// アニメーションコントローラーの取得.
 	CFbxAnimationController GetAnimationController();
 
+	// ボーン座標の取得.
+	DirectX::XMFLOAT3 GetBonePosition( const char* boneName );
+
 	//-----------------------------------------.
 	//			パラメータ設定.
 	//-----------------------------------------.
@@ -66,6 +69,7 @@ private:
 	std::vector<FBXMeshData> m_MeshData;	// メッシュデータ.
 	std::unordered_map<std::string, ID3D11ShaderResourceView*> m_Textures;	// テクスチャリスト.
 	CFbxAnimationController* m_pAc;			// アニメーションコントローラー.
+	std::map<std::string, std::pair<int, int>> m_BoneNumberList;
 
 	/***************************************
 	*			パラメータ.

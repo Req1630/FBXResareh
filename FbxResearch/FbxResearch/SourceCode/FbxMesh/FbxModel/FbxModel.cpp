@@ -66,16 +66,16 @@ void CFbxModel::SetAnimationData( const SAnimationDataList& animDataList )
 //////////////////////////////////////////////////////.
 void CFbxModel::BoneNameDataCreate()
 {
-	std::map<std::string, int> boneList;
-	int index = 0;
+	int meshNo = 0;
+	int boneNo = 0;
 	for( auto& m : m_MeshData ){
+		boneNo = 0;
 		for( auto& s : m.Skin.BoneName ){
-//			boneList[s] = index;
-			boneList.try_emplace( s, index );
+			m_BoneNumberList.try_emplace( s, meshNo, boneNo );
+			boneNo++;
 		}
-		index++;
+		meshNo++;
 	}
-	int i = 0;
 }
 
 //////////////////////////////////////////////////////.
@@ -106,6 +106,14 @@ CFbxAnimationController CFbxModel::GetAnimationController()
 {
 	if( m_pAc != nullptr ) return *m_pAc;
 	return CFbxAnimationController();
+}
+
+//////////////////////////////////////////////////////.
+// É{Å[Éìç¿ïWÇÃéÊìæ.
+//////////////////////////////////////////////////////.
+DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
+{
+	return DirectX::XMFLOAT3();
 }
 
 //////////////////////////////////////////////////////.

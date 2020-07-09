@@ -65,6 +65,7 @@ private:
 	std::unique_ptr<CFbxModelLoader>		m_FbxModelLoader;
 	std::unique_ptr<CFbxAnimationLoader>	m_fbxAnimLoader;
 	std::shared_ptr<CFbxModel>				m_FbxModel;
+	std::shared_ptr<CFbxModel>				m_FbxBone;
 	std::shared_ptr<CFbxModel>				m_FbxGround;
 
 	CFbxAnimationController	m_AC;

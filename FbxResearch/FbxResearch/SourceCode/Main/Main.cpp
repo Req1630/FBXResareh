@@ -34,6 +34,7 @@ CMain::CMain()
 	, m_FbxModelLoader	( nullptr )
 	, m_fbxAnimLoader	( nullptr )
 	, m_FbxModel		( nullptr )
+	, m_FbxBone			( nullptr )
 	, m_FbxGround		( nullptr )
 {
 	m_pDirectX11 = std::make_unique<CDirectX11>();
@@ -46,6 +47,7 @@ CMain::CMain()
 	m_FbxModelLoader = std::make_unique<CFbxModelLoader>();
 	m_fbxAnimLoader = std::make_unique<CFbxAnimationLoader>();
 	m_FbxModel = std::make_shared<CFbxModel>();
+	m_FbxBone = std::make_shared<CFbxModel>();
 	m_FbxGround = std::make_shared<CFbxModel>();
 }
 
@@ -109,7 +111,8 @@ HRESULT CMain::Load()
 	};
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[10] );
+	m_FbxModelLoader->LoadModel( m_FbxBone.get(), fileName[6] );
 
 	//SAnimationDataList animDataList;
 	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[6] );
@@ -130,6 +133,8 @@ void CMain::Update()
 
 	// ImGui‚ÌƒtƒŒ[ƒ€‰Šú‰».
 	CImGuiManager::SetingNewFrame();
+	
+	const char* boneName = "";
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { 0.0f, 0.0f, 0.0f };
@@ -210,6 +215,14 @@ void CMain::Update()
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition(boneName) );
+		m_FbxBone->SetRotation( objectRot );
+		m_FbxBone->SetScale( objectScale );
+		m_FbxBone->SetAnimSpeed( 0.01 );
+		m_FbxRenderer->Render(
+			*m_FbxBone.get(),
+			*m_pCamera.get(),
+			*m_pLight.get() );
 	}
 
 	static DirectX::XMFLOAT3 spritePos = { 0.0f, WND_H*0.3f*0.0f, 0.0f };
@@ -280,6 +293,15 @@ void CMain::Update()
 		m_FbxModel->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
+			*m_pCamera.get(),
+			*m_pLight.get() );
+
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition(boneName) );
+		m_FbxBone->SetRotation( objectRot );
+		m_FbxBone->SetScale( objectScale );
+		m_FbxBone->SetAnimSpeed( 0.01 );
+		m_FbxRenderer->Render(
+			*m_FbxBone.get(),
 			*m_pCamera.get(),
 			*m_pLight.get() );
 	}
