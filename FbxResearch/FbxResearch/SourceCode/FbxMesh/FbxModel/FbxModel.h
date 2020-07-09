@@ -28,6 +28,8 @@ public:
 	CFbxAnimationController* GetPtrAC();
 	// アニメーションデータの設定.
 	void SetAnimationData( const SAnimationDataList& animDataList );
+	// ボーン名データの作成.
+	void BoneNameDataCreate();
 
 	//-----------------------------------------.
 	//			パラメータ取得.
@@ -55,6 +57,7 @@ public:
 	void SetAnimSpeed( const double& speed );
 	// アニメーションの変更.
 	void ChangeAnimation( int& index );
+
 
 private:
 	/***************************************

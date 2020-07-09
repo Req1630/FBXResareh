@@ -66,7 +66,7 @@ private:
 	// UV情報読み込み.
 	void LoadUV( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex, int texUVIndex, int uvLayer );
 	// スキン情報読み込み.
-	void LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& bones );
+	void LoadSkin( FbxMesh* pMesh, SkinData& skinData, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& bones );
 	// ウェイトとボーンの設定.
 	void SetBoneWeight( VERTEX& vertex, const std::vector<float>& weight, const std::vector<int>& bone );
 

@@ -61,6 +61,22 @@ void CFbxModel::SetAnimationData( const SAnimationDataList& animDataList )
 	m_pAc->SetAnimDataList( animDataList );
 }
 
+//////////////////////////////////////////////////////.
+// ボーン名データの作成.
+//////////////////////////////////////////////////////.
+void CFbxModel::BoneNameDataCreate()
+{
+	std::map<std::string, int> boneList;
+	int index = 0;
+	for( auto& m : m_MeshData ){
+		for( auto& s : m.Skin.BoneName ){
+//			boneList[s] = index;
+			boneList.try_emplace( s, index );
+		}
+		index++;
+	}
+	int i = 0;
+}
 
 //////////////////////////////////////////////////////.
 // ワールド行列を取得.

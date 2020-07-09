@@ -41,6 +41,7 @@ struct SkinData
 {
 	bool HasSkins;
 	std::vector<FbxMatrix> InitBonePositions;	// 初期ボーン座標.
+	std::vector<std::string> BoneName;			// ボーン名の取得.
 };
 //======================================.
 //			メッシュデータ.

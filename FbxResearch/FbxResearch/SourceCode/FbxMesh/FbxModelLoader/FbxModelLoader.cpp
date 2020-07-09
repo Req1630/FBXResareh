@@ -165,11 +165,12 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 		if( FAILED( CreateIndexBuffers( m ) )) return E_FAIL;
 		meshNo++;
 	}
+	pModelData->BoneNameDataCreate();
 
 	//---------------------------------------------.
 	//	アニメーションの読み込み.
 	//---------------------------------------------.
-	CFbxAnimationLoader animLoader;				// アニメーション読み込みクラス.
+	CFbxAnimationLoader animLoader;		// アニメーション読み込みクラス.
 	SAnimationDataList	animDataList;	// アニメーションデータ.
 	animLoader.LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
 	if( animDataList.AnimList.empty() == false ){
@@ -325,7 +326,7 @@ void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 	// ボーンインデックス.
 	std::vector<std::vector<int>> bones( ctrlCount );
 	// スキン情報の取得.
-	LoadSkin( pMesh, meshData, weights, bones );
+	LoadSkin( pMesh, meshData.Skin, weights, bones );
 
 	// ポリゴン数の取得.
 	int polygonCount = pMesh->GetPolygonCount();
@@ -592,7 +593,7 @@ void CFbxModelLoader::LoadUV( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex
 //////////////////////////////////////////////////////////////////////.
 // スキン情報読み込み.
 //////////////////////////////////////////////////////////////////////.
-void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& bones )
+void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, SkinData& skinData, std::vector<std::vector<float>>& weights, std::vector<std::vector<int>>& bones )
 {
 	// ダウンキャストしてスキン情報を取得.
 	FbxSkin* pSkin = (FbxSkin*)pMesh->GetDeformer( 0, FbxDeformer::eSkin );
@@ -601,19 +602,13 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 
 	m_MeshClusterData.emplace_back();
 
-
 	// ※Cluster == Bone.
 	// ボーンの数.
 	int boneCount = pSkin->GetClusterCount();
-
-	std::vector<std::string> boneNames(boneCount);
-
 	for( int boneIndex = 0; boneIndex < boneCount; boneIndex++ ){
 		// ボーン情報取得.
 		FbxCluster* pCluster = pSkin->GetCluster( boneIndex );
 		FbxNode* pNode = pCluster->GetLink();
-
-		boneNames[boneIndex] = pNode->GetName();
 
 		m_MeshClusterData.back().ClusterName.emplace_back( pNode->GetName() );
 
@@ -625,7 +620,10 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 
 		newbindpose = bindPoseMatrix.Inverse() * newbindpose;
 		// 初期ボーン座標の設定.
-		meshData.Skin.InitBonePositions.emplace_back( newbindpose );
+		skinData.InitBonePositions.emplace_back( newbindpose );
+		// ボーン名の取得.
+		skinData.BoneName.emplace_back( pNode->GetName() );
+
 		// ボーンインデックスとウェイトの設定.
 		int*	boneVertexIndices = pCluster->GetControlPointIndices();
 		double* boneVertexWeights = pCluster->GetControlPointWeights();
