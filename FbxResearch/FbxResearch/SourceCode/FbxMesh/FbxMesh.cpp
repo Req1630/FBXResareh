@@ -609,13 +609,12 @@ void CFbxMesh::AnimMatrixCalculation( const int& meahNo, FBXMeshData& meshData, 
 		pAC = pAc;
 	}
 
-	FbxMatrix globalPosition = pAC->GetFrameMatrix( meahNo );
 	CBUFFER_PER_BONE cb;
 	int boneIndex = 0;
 	FbxMatrix frameMatrix;
 	FbxMatrix vertexTransformMatrix;
 	for( auto& b : meshData.Skin.InitBonePositions ){
-		frameMatrix = globalPosition.Inverse() * pAC->GetFrameLinkMatrix( meahNo, boneIndex );
+		frameMatrix = pAC->GetFrameLinkMatrix( meahNo, boneIndex );
 		vertexTransformMatrix = frameMatrix * b;
 		cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
 		boneIndex++;
@@ -1040,7 +1039,6 @@ void CFbxMesh::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vector<std:
 		FbxCluster* pCluster = pSkin->GetCluster( boneIndex );
 		FbxNode* pNode = pCluster->GetLink();
 
-		m_MeshClusterData.back().ClusterKey[pNode->GetName()] = pNode;
 		m_MeshClusterData.back().ClusterName.emplace_back( pNode->GetName() );
 
 		FbxAMatrix bindPoseMatrix;

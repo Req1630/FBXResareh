@@ -1,9 +1,12 @@
 #include "FbxAnimationLoader.h"
 #include "FbxAnimationController.h"
 
+#include <map>
+
 CFbxAnimationLoader::CFbxAnimationLoader()
 	: m_pFbxManager		( nullptr )
 	, m_pFbxScene		( nullptr )
+	, m_MeshClusterData	()
 	, m_AnimDataList	()
 	, m_Skeletons		()
 {
@@ -13,9 +16,9 @@ CFbxAnimationLoader::~CFbxAnimationLoader()
 {
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // 作成.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 HRESULT CFbxAnimationLoader::Create()
 {
 	//------------------------------.
@@ -23,7 +26,8 @@ HRESULT CFbxAnimationLoader::Create()
 	//------------------------------.
 	m_pFbxManager = FbxManager::Create();
 	if( m_pFbxManager == nullptr ){
-		ERROR_MESSAGE( "FbxManager Create Failure." );
+		_ASSERT_EXPR( false, "FbxManager作成失敗" );
+		MessageBox( nullptr, "FbxManager作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 	//------------------------------.
@@ -31,25 +35,26 @@ HRESULT CFbxAnimationLoader::Create()
 	//------------------------------.
 	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
 	if( m_pFbxScene == nullptr ){
-		ERROR_MESSAGE( "FbxScene Create Failure." );
+		_ASSERT_EXPR( false, "FbxScene作成失敗" );
+		MessageBox( nullptr, "FbxScene作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // 破壊.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 void CFbxAnimationLoader::Destroy()
 {
 	SAFE_DESTROY( m_pFbxScene );
 	SAFE_DESTROY( m_pFbxManager );
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // アニメーションの読み込み.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char* fileName )
 {
 	//------------------------------.
@@ -57,7 +62,8 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 	//------------------------------.
 	FbxImporter* pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
 	if( pFbxImpoter == nullptr ){
-		ERROR_MESSAGE( "FbxImpoter Create Failure." );
+		_ASSERT_EXPR( false, "FbxImporter作成失敗" );
+		MessageBox( nullptr, "FbxImporter作成失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
@@ -67,7 +73,8 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 	// ファイル名の設定.
 	FbxString fbxFileName( fileName );
 	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
-		ERROR_MESSAGE( "FbxFile Loading Failure." );
+		_ASSERT_EXPR( false, "Fbxファイル読み込み失敗" );
+		MessageBox( nullptr, "Fbxファイル読み込み失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
@@ -78,17 +85,25 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 		SAFE_DESTROY( m_pFbxManager );
 		SAFE_DESTROY( m_pFbxScene );
 		SAFE_DESTROY( pFbxImpoter );
-		ERROR_MESSAGE( "FbxScene Create Failure." );
+		_ASSERT_EXPR( false, "FbxImpoterとFbxSceneの関連付け失敗" );
+		MessageBox( nullptr, "FbxImpoterとFbxSceneの関連付け失敗", "Warning", MB_OK );
 		return E_FAIL;
 	}
 
+	//---------------------------------------------.
+	// ポリゴンの設定.
+	//---------------------------------------------.
 	bool convertReslut = false;
 	FbxGeometryConverter geometryConverter( m_pFbxManager );
 	// ポリゴンを三角形にする.
 	// 多角形ポリゴンがあれば作りなおすので時間がかかる.
 	convertReslut = geometryConverter.Triangulate( m_pFbxScene, true );
+	if( convertReslut == false ){
+		_ASSERT_EXPR( false, "ポリゴンの三角化失敗" );
+		MessageBox( nullptr, "ポリゴンの三角化失敗", "Warning", MB_OK );
+		return E_FAIL;
+	}
 	geometryConverter.RemoveBadPolygonsFromMeshes( m_pFbxScene );
-	convertReslut = geometryConverter.SplitMeshesPerMaterial( m_pFbxScene, true );
 
 	//-----------------------------------.
 	// FbxSkeletonの数を取得.
@@ -116,6 +131,7 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 	//-----------------------------------.
 	GetAnimationFrame( m_pFbxScene );
 
+	// アニメーションデータが空じゃなければリストを追加.
 	if( m_AnimDataList.empty() == false ){
 		pAc->AddAnimationData( m_AnimDataList );
 	}
@@ -126,9 +142,9 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // アニメーションの読み込み.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 HRESULT CFbxAnimationLoader::LoadAnimationData(
 	FbxScene*							pFbxScene,
 	std::vector<FBXMeshClusterData>&	meshClusterData,
@@ -142,9 +158,9 @@ HRESULT CFbxAnimationLoader::LoadAnimationData(
 	return S_OK;
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // スキン情報読み込み.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 void CFbxAnimationLoader::LoadSkin( FbxMesh* pMesh, FBXMeshClusterData& meshClusterData )
 {
 	// ダウンキャストしてスキン情報を取得.
@@ -157,15 +173,14 @@ void CFbxAnimationLoader::LoadSkin( FbxMesh* pMesh, FBXMeshClusterData& meshClus
 		// ボーン情報取得.
 		FbxCluster* pCluster = pSkin->GetCluster( boneIndex );
 		FbxNode* pNode = pCluster->GetLink();
-
-		meshClusterData.ClusterKey[pNode->GetName()] = pNode;
+		// ボーン名の取得.
 		meshClusterData.ClusterName.emplace_back( pNode->GetName() );
 	}
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // キーフレームの取得.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 {
 	// フレームレートの取得.
@@ -191,6 +206,9 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 		// アニメーションのいろんな時間を取得.
 		pNode->GetAnimationInterval( timeSpan, animStack );
 
+		// アニメーション名を取得.
+		animData.Name = animStack->GetName();
+
 		// アニメーションの時間を取得.
 		FbxTime time = timeSpan.GetStop() - timeSpan.GetStart();
 		FbxLongLong ms = time.GetMilliSeconds();	// ミリ秒に変換.
@@ -212,11 +230,13 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 		// アニメーションのフレーム時の行列を取得.
 		GetAnimationFrameMatrix( animData, timeSpan, pNode );
 
-		
 	}
+	// アニメーションデータが正しいか確認.
 	for( size_t i = 0; i < m_AnimDataList.size(); i++ ){
-		if( m_AnimDataList[i].FrameList.empty() == true ||
-			m_AnimDataList[i].FrameList.back().size() <= m_AnimDataList[i].FrameRate ){
+		if( m_AnimDataList[i].EndTime < 0.0 ){
+			// アニメーションの終了時間が 0 より少ないと、
+			// 明らかにおかしなデータなので、
+			// そのアニメーションデータを削除する.
 			m_AnimDataList[i] = m_AnimDataList.back();
 			m_AnimDataList.pop_back();
 			i--;
@@ -224,9 +244,9 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 	}
 }
 
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 // アニメーションのフレーム行列を取得.
-//-----------------------------------------.
+////////////////////////////////////////////////////////////////.
 void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, FbxTimeSpan& timeSpan, FbxNode* pNode )
 {
 	// アニメーションフレーム.
@@ -238,17 +258,22 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 	int meshNo = 0;	// メッシュ番号.
 	for( auto& animSkelton : m_MeshClusterData ){
 		animData.KeyFrameLinkMatrix.emplace_back();
-		animData.KeyFrameLinkMatrix.back().resize( animSkelton.ClusterKey.size() );
+		animData.KeyFrameLinkMatrix.back().resize( animSkelton.ClusterName.size() );
 		
-
+		
 		// スケルトンの数分ループ.
 		for( auto& s : m_Skeletons ){
 			FbxNode* skeletonNode = s->GetNode();
 			// 追加したノードが見つからなければ終了.
-			if( animSkelton.ClusterKey.find(skeletonNode->GetName()) == 
-				animSkelton.ClusterKey.end() ) continue;
-			int numOfBones = animSkelton.ClusterKey.size();
+			//if( animSkelton.ClusterKey.find(skeletonNode->GetName()) == 
+			//	animSkelton.ClusterKey.end() ) continue;
+			if( std::find( 
+				animSkelton.ClusterName.begin(), 
+				animSkelton.ClusterName.end(), 
+				skeletonNode->GetName() ) == animSkelton.ClusterName.end() ) continue;
+			int numOfBones = animSkelton.ClusterName.size();
 			if( numOfBones <= 0 ) continue;
+
 			std::map<double, FbxMatrix> keyFrame;
 
 			// フレームの数分.
@@ -270,22 +295,13 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 
 		// フレームリストを追加.
 		if( animData.KeyFrameLinkMatrix.empty() == false ){
-			animData.FrameList.emplace_back();
+			animData.KeyList.emplace_back();
 			for( auto& f : animData.KeyFrameLinkMatrix[meshNo][0] ){
-				animData.FrameList.back().emplace_back( f.first );
+				animData.KeyList.back().emplace_back( f.first );
 			}
-			animData.FrameList.back().emplace_back( animData.EndTime );
+			animData.KeyList.back().emplace_back( animData.EndTime );
 		}
 
-		// フレームの数分.
-		animData.KeyFrameMatrix.emplace_back();
-		for( int i = 0; i < totalFrame; i++ ){
-			double keyTime = start + (i * (1.0f/animData.FrameRate));
-			FbxTime time;	// 指定時間の行列を取得するための時間.
-			time.SetSecondDouble( keyTime );
-			FbxAMatrix m = pNode->EvaluateGlobalTransform( time );
-			animData.KeyFrameMatrix.back()[keyTime] = m;
-		}
 		meshNo++;
 	}
 }

@@ -11,10 +11,12 @@ class CLight;
 class CFbxRenderer
 {
 	// シェーダー名.
-	const wchar_t* SHADER_NAME = L"Data\\Shader\\SimpleShader.hlsl";
 	const wchar_t* VS_SHADER_NAME		= L"Data\\Shader\\FbxModelVS.hlsl";
 	const wchar_t* VS_ANIM_SHADER_NAME	= L"Data\\Shader\\FbxAnimationVS.hlsl";
 	const wchar_t* PS_SHADER_NAME		= L"Data\\Shader\\FbxModelPS.hlsl";
+
+	// 最大ボーン数.
+	static const int BONE_COUNT_MAX = 255;
 
 	/***************************************
 	*			↓	構造体　↓.
@@ -44,11 +46,11 @@ class CFbxRenderer
 	//======================================.
 	struct CBUFFER_PER_BONE
 	{
-		DirectX::XMMATRIX Bone[255];	// ボーン行列.
+		DirectX::XMMATRIX Bone[BONE_COUNT_MAX];	// ボーン行列.
 		CBUFFER_PER_BONE()
 		{
 			// 行列の初期化.
-			for( int i = 0; i < 255; i++ ){
+			for( int i = 0; i < BONE_COUNT_MAX; i++ ){
 				Bone[i] = DirectX::XMMatrixIdentity();
 			}
 		}
@@ -83,6 +85,13 @@ private:
 		const int& meahNo, 
 		FBXMeshData& meshData, 
 		CFbxAnimationController* pAc );
+
+	// ボーンの定数バッファの取得.
+	bool GetBoneConstBuffer(
+		const SkinData& skinData,
+		const int& meahNo,
+		CFbxAnimationController* pAc,
+		CBUFFER_PER_BONE* pOutCB );
 
 	//-----------------------------------------.
 	//		描画用データの作成系.
@@ -120,11 +129,4 @@ private:
 	ID3D11Buffer*		m_pCBufferPerMaterial;	// コンスタントバッファ.
 	ID3D11Buffer*		m_pCBufferPerBone;		// コンスタントバッファ.
 	ID3D11SamplerState*	m_pSampleLinear;		// サンプラ:テクスチャに各種フィルタをかける.
-
-	/***************************************
-	*			パラメータ.
-	***************************************/
-	DirectX::XMFLOAT3 m_Position;	// 座標.
-	DirectX::XMFLOAT3 m_Rotation;	// 回転.
-	DirectX::XMFLOAT3 m_Scale;		// 大きさ.
 };

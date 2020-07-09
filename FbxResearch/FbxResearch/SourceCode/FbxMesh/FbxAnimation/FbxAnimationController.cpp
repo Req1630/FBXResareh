@@ -1,14 +1,21 @@
 #include "FbxAnimationController.h"
 
 CFbxAnimationController::CFbxAnimationController()
+	: m_AnimSpeed		( 0.0 )
+	, m_NowAnimNumber	( 0 )
+	, m_AnimDataList	()
+	, m_NowAnimation	()
 {
 }
 
 CFbxAnimationController::~CFbxAnimationController()
 {
+	m_AnimDataList.clear();
 }
 
+///////////////////////////////////////////////////.
 // フレームの更新.
+///////////////////////////////////////////////////.
 void CFbxAnimationController::FrameUpdate()
 {
 	// アニメーションデータが無ければ終了.
@@ -28,24 +35,46 @@ void CFbxAnimationController::FrameUpdate()
 	}
 }
 
+///////////////////////////////////////////////////.
 // アニメーションデータの設定.
+///////////////////////////////////////////////////.
 void CFbxAnimationController::SetAnimDataList( const std::vector<SAnimationData>& animDataList )
 {
-	m_AnimDataList = animDataList;
-	m_NowAnimation = m_AnimDataList[0];
-	m_AnimSpeed = m_NowAnimation.AnimSpeed;
+	// アニメーションデータが空だったら終了.
+	if( animDataList.empty() == true ) return;
+	m_AnimDataList = animDataList;			// アニメーションデータの設定.
+	m_NowAnimation = m_AnimDataList[0];		// アニメーションの最初のデータを現在のデータに設定.
+	m_AnimSpeed = m_NowAnimation.AnimSpeed;	// アニメーション速度の設定.
 }
 
+///////////////////////////////////////////////////.
+// アニメーションデータの追加.
+///////////////////////////////////////////////////.
+void CFbxAnimationController::AddAnimationData( const std::vector<SAnimationData>& animationData )
+{
+	// アニメーションリスト分のアニメーション追加.
+	for( auto& a : animationData ) m_AnimDataList.emplace_back( a );
+	// アニメーションデータが空なら終了.
+	if( m_AnimDataList.empty() == true ) return;
+	m_NowAnimation = m_AnimDataList[0];		// アニメーションの最初のデータを現在のデータに設定.
+	m_AnimSpeed = m_NowAnimation.AnimSpeed;	// アニメーション速度の設定.
+}
+
+///////////////////////////////////////////////////.
 // 次のアニメーションに変更.
+///////////////////////////////////////////////////.
 void CFbxAnimationController::ChangeNextAnimation()
 {
 	m_NowAnimNumber++;	// アニメーション番号の加算.
-	ChangeAnimation( m_NowAnimNumber );
+	ChangeAnimation( m_NowAnimNumber );	// アニメーションの変更.
 }
 
+///////////////////////////////////////////////////.
 // 指定のアニメーションに変更.
+///////////////////////////////////////////////////.
 void CFbxAnimationController::ChangeAnimation( int& animNumber )
 {
+	// アニメーションデータが空なら終了.
 	if( m_AnimDataList.empty() == true ) return;
 	// アニメーション番号がアニメーションリストより多ければ.
 	// アニメーションリストの初めから再生.
@@ -54,12 +83,10 @@ void CFbxAnimationController::ChangeAnimation( int& animNumber )
 	m_AnimSpeed = m_NowAnimation.AnimSpeed;
 }
 
+///////////////////////////////////////////////////.
+// フレーム時の行列取得.
+///////////////////////////////////////////////////.
 FbxMatrix CFbxAnimationController::GetFrameLinkMatrix( const int& meshNo, const int& i )
 {
 	return m_NowAnimation.GetFrameLinkMatrix( meshNo, i, m_NowAnimation.NowTime );
-}
-
-FbxMatrix CFbxAnimationController::GetFrameMatrix( const int& meshNo )
-{
-	return m_NowAnimation.GetFrameMatrix( meshNo, m_NowAnimation.NowTime );
 }

@@ -15,9 +15,6 @@ CFbxRenderer::CFbxRenderer()
 	, m_pCBufferPerMaterial	( nullptr )
 	, m_pCBufferPerBone		( nullptr )
 	, m_pSampleLinear		( nullptr )
-	, m_Position			( 0.0f, 0.0f, 0.0f )
-	, m_Rotation			( 0.0f, 0.0f, 0.0f )
-	, m_Scale				( 1.0f, 1.0f, 1.0f )
 {
 }
 
@@ -75,20 +72,23 @@ void CFbxRenderer::Render(
 	CFbxAnimationController* pAc )
 {
 	// ワールド行列取得.
-	DirectX::XMMATRIX World	= mdoel.GetWorldMatrix();
-	DirectX::XMMATRIX WVP = World * camera.GetViewMatrix() * camera.GetProjMatrix();
-	int meshNo = 0;
+	DirectX::XMMATRIX mWorld	= mdoel.GetWorldMatrix();
+	// ワールド、ビュー、プロジェクション行列.
+	DirectX::XMMATRIX mWVP = mWorld * camera.GetViewMatrix() * camera.GetProjMatrix();
+
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
 
+	// アニメーションフレームの更新.
 	if( pAc == nullptr ){
-		// アニメーションフレームの更新.
+		// モデルデータのアニメーションコントローラーを使用.
 		if( mdoel.GetPtrAC() != nullptr ) mdoel.GetPtrAC()->FrameUpdate();
 	} else {
-		// アニメーションフレームの更新.
+		// デフォルト引数のアニメーションコントローラーを使用.
 		if( pAc != nullptr ) pAc->FrameUpdate();
 	}
 
+	int meshNo = 0;
 	// メッシュデータ分描画.
 	for( auto& m : mdoel.GetMeshData() ){
 		// 使用するシェーダーの設定.
@@ -114,9 +114,9 @@ void CFbxRenderer::Render(
 		{
 			CBUFFER_PER_MESH cb;
 			// ワールド行列を転置して渡す.
-			cb.mW	= DirectX::XMMatrixTranspose( World );
+			cb.mW	= DirectX::XMMatrixTranspose( mWorld );
 			// world, View, Proj を転置して渡す.
-			cb.mWVP	= DirectX::XMMatrixTranspose( WVP );
+			cb.mWVP	= DirectX::XMMatrixTranspose( mWVP );
 			// ライトの wvp　を転置して渡す.
 			cb.mLightWVP = DirectX::XMMatrixTranspose( light.GetVP() );
 			// カメラの座標を渡す.
@@ -156,6 +156,7 @@ void CFbxRenderer::Render(
 		// サンプラをセット.
 		m_pContext11->PSSetSamplers( 0, 1, &m_pSampleLinear );
 
+		// テクスチャの確認.
 		if( mdoel.GetTextures().count(m.Material.Name) > 0 ){
 			// テクスチャがあれば.
 			// テクスチャをシェーダーに渡す.
@@ -165,6 +166,7 @@ void CFbxRenderer::Render(
 			ID3D11ShaderResourceView* notex = { nullptr };
 			m_pContext11->PSSetShaderResources( 0, 1, &notex );
 		}
+
 		// ポリゴンをレンダリング.
 		m_pContext11->DrawIndexed( m.PolygonVertexCount, 0, 0 );
 	}
@@ -181,32 +183,11 @@ void CFbxRenderer::AnimMatrixCalculation(
 {
 	CBUFFER_PER_BONE cb;
 	if( pAc == nullptr ){
-		// アニメーションデータが無ければ終了.
-		if( mdoel.GetPtrAC() == nullptr ) return;
-		FbxMatrix globalPosition = mdoel.GetPtrAC()->GetFrameMatrix( meahNo );
-		
-		int boneIndex = 0;
-		FbxMatrix frameMatrix;
-		FbxMatrix vertexTransformMatrix;
-		for( auto& b : meshData.Skin.InitBonePositions ){
-			frameMatrix = globalPosition.Inverse() * mdoel.GetPtrAC()->GetFrameLinkMatrix( meahNo, boneIndex );
-			vertexTransformMatrix = frameMatrix * b;
-			cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
-			boneIndex++;
-		}
-		
+		// モデルデータのアニメーションコントローラーを使用.
+		if( GetBoneConstBuffer( meshData.Skin, meahNo, mdoel.GetPtrAC(), &cb ) == false ) return;
 	} else {
-		FbxMatrix globalPosition = pAc->GetFrameMatrix( meahNo );
-
-		int boneIndex = 0;
-		FbxMatrix frameMatrix;
-		FbxMatrix vertexTransformMatrix;
-		for( auto& b : meshData.Skin.InitBonePositions ){
-			frameMatrix = globalPosition.Inverse() * pAc->GetFrameLinkMatrix( meahNo, boneIndex );
-			vertexTransformMatrix = frameMatrix * b;
-			cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
-			boneIndex++;
-		}
+		// デフォルト引数のアニメーションコントローラーを使用.
+		if( GetBoneConstBuffer( meshData.Skin, meahNo, pAc, &cb ) == false ) return;
 	}
 
 	// アニメーション用の頂点シェーダーの設定.
@@ -227,6 +208,32 @@ void CFbxRenderer::AnimMatrixCalculation(
 	m_pContext11->VSSetConstantBuffers( 2, 1, &m_pCBufferPerBone );
 	m_pContext11->PSSetConstantBuffers( 2, 1, &m_pCBufferPerBone );
 
+}
+
+////////////////////////////////////////////////.
+// ボーンの定数バッファの取得.
+////////////////////////////////////////////////.
+bool CFbxRenderer::GetBoneConstBuffer(
+	const SkinData& skinData,
+	const int& meahNo,
+	CFbxAnimationController* pAc,
+	CBUFFER_PER_BONE* pOutCB )
+{
+	if( pAc == nullptr ) return false;
+
+	int boneIndex = 0;
+	FbxMatrix frameMatrix;
+	FbxMatrix vertexTransformMatrix;
+	for( auto& b : skinData.InitBonePositions ){
+		if( boneIndex >= BONE_COUNT_MAX ) break;
+
+		frameMatrix = pAc->GetFrameLinkMatrix( meahNo, boneIndex );
+		vertexTransformMatrix = frameMatrix * b;
+		pOutCB->Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
+		boneIndex++;
+	}
+
+	return true;
 }
 
 ////////////////////////////////////////////////.

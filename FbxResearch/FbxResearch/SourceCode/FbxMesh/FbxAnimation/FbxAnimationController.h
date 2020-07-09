@@ -2,44 +2,68 @@
 
 #include "FbxAnimationData.h"
 
+/***************************************************************************
+	アニメーションを操作するクラス.
+----------------------------------------------------------------------------
+*	↓   主に使用する関数   ↓.
+*	次のアニメーションに変更.
+*	void ChangeNextAnimation().
+*
+----------------------------------------------------------------------------
+*	指定のアニメーションに変更.
+*	indexがアニメーションリストより多ければ、
+*	リストの初めから再生.
+*	void ChangeAnimation( int& index ).
+*
+----------------------------------------------------------------------------
+*	アニメーション速度の設定.
+*	void SetAnimSpeed( const double& speed ).
+*
+----------------------------------------------------------------------------
+*	現在のアニメーション速度の取得.
+*	double GetAnimSpeed().
+*
+***/
 class CFbxAnimationController
 {
 public:
 	CFbxAnimationController();
 	~CFbxAnimationController();
 
+	//-----------------------------------------.
 	// フレームの更新.
+	//-----------------------------------------.
 	void FrameUpdate();
+
+	//-----------------------------------------.
+	//	アニメーションデータの設定.
+	//-----------------------------------------.
 
 	// アニメーションデータの設定.
 	void SetAnimDataList( const std::vector<SAnimationData>& animDataList );
+	// アニメーションデータの追加.
+	void AddAnimationData( const std::vector<SAnimationData>& animationData );
+
+	//-----------------------------------------.
+	//	アニメーションのパラメータの設定・取得.
+	//-----------------------------------------.
 
 	// 次のアニメーションに変更.
 	void ChangeNextAnimation();
 	// 指定のアニメーションに変更.
 	void ChangeAnimation( int& animNumber );
-	// フレーム時の行列取得.
-	FbxMatrix GetFrameLinkMatrix( const int& meshNo, const int& i );
-	// フレーム時の行列取得.
-	FbxMatrix GetFrameMatrix( const int& meshNo );
 
 	// アニメーション速度の設定.
 	void SetAnimSpeed( const double& speed ){ m_AnimSpeed = speed; }
 	// アニメーション速度の取得.
 	double GetAnimSpeed() const { return m_AnimSpeed; }
 
-	// アニメーションデータの追加.
-	void AddAnimationData( const std::vector<SAnimationData>& animationData )
-	{
-		for( auto& a : animationData )
-			m_AnimDataList.emplace_back( a );
-		if( m_AnimDataList.empty() == true ) return;
-		m_NowAnimation = m_AnimDataList.front();
-	}
+	// フレーム時の行列取得.
+	FbxMatrix GetFrameLinkMatrix( const int& meshNo, const int& i );
 
 private:
 	double m_AnimSpeed;							// アニメーション速度.
+	int m_NowAnimNumber;						// 現在のアニメーション番号.
 	std::vector<SAnimationData>	m_AnimDataList;	// アニメーションデータリスト.
 	SAnimationData	m_NowAnimation;				// 現在のアニメーションデータ.
-	int m_NowAnimNumber;						// 現在のアニメーション番号.
 };

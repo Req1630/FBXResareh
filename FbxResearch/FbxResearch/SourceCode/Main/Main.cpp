@@ -109,7 +109,7 @@ HRESULT CMain::Load()
 	};
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[10] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
 	
 //	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[6] );
 //	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[7] );

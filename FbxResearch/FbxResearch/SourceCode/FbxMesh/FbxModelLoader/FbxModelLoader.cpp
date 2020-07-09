@@ -1,8 +1,11 @@
 #include "FbxModelLoader.h"
 #include "..\FbxRenderer\FbxRenderer.h"
 #include "..\FbxModel\FbxModel.h"
+#include "..\..\Direct11\TextuerLoader\WICTextureLoader.h"
 
 #include <crtdbg.h>
+#include <string>
+#include <codecvt>
 
 CFbxModelLoader::CFbxModelLoader()
 	: m_pDevice11		( nullptr )
@@ -202,7 +205,7 @@ void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char
 		FbxProperty diffuse = pMat->FindProperty( FbxSurfaceMaterial::sDiffuse );
 		// Specularの情報を取得.
 		FbxProperty specular = pMat->FindProperty( FbxSurfaceMaterial::sSpecular );
-
+		
 		// アンビエント取得.
 		if( ambient.IsValid() == true ){
 			mesh.Material.Ambient.x = (float)ambient.Get<FbxDouble4>()[0];
@@ -606,7 +609,6 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 		FbxCluster* pCluster = pSkin->GetCluster( boneIndex );
 		FbxNode* pNode = pCluster->GetLink();
 
-		m_MeshClusterData.back().ClusterKey[pNode->GetName()] = pNode;
 		m_MeshClusterData.back().ClusterName.emplace_back( pNode->GetName() );
 
 		FbxAMatrix bindPoseMatrix;	// 初期ボーン行列.
