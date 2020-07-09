@@ -109,10 +109,13 @@ HRESULT CMain::Load()
 	};
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
-	
-//	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[6] );
-//	m_fbxAnimLoader->LoadAnim( &m_AC, fileName[7] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[5] );
+
+	//SAnimationDataList animDataList;
+	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[6] );
+	//m_AC.AddAnimationData( animDataList );
+	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[7] );
+	//m_AC.AddAnimationData( animDataList );
 
 	return S_OK;
 }

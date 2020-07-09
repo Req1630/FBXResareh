@@ -40,9 +40,9 @@ public:
 	//-----------------------------------------.
 
 	// アニメーションデータの設定.
-	void SetAnimDataList( const std::vector<SAnimationData>& animDataList );
+	void SetAnimDataList( const SAnimationDataList& animDataList );
 	// アニメーションデータの追加.
-	void AddAnimationData( const std::vector<SAnimationData>& animationData );
+	void AddAnimationData( const SAnimationDataList& animationData );
 
 	//-----------------------------------------.
 	//	アニメーションのパラメータの設定・取得.
@@ -59,7 +59,7 @@ public:
 	double GetAnimSpeed() const { return m_AnimSpeed; }
 
 	// フレーム時の行列取得.
-	FbxMatrix GetFrameLinkMatrix( const int& meshNo, const int& i );
+	bool GetFrameLinkMatrix( const int& meshNo, const int& i, FbxMatrix* outMatrix );
 
 private:
 	double m_AnimSpeed;							// アニメーション速度.

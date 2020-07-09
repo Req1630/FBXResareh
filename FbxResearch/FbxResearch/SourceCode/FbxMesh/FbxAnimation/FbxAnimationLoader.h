@@ -51,7 +51,7 @@ public:
 	//-----------------------------------------.
 	//	アニメーションの読み込み.
 	//-----------------------------------------.
-	HRESULT LoadAnim( CFbxAnimationController* pAc, const char* fileName );
+	HRESULT LoadAnim( SAnimationDataList* outAnimDataList, const char* fileName );
 
 	//-----------------------------------------.
 	//	アニメーションの読み込み.
@@ -60,12 +60,7 @@ public:
 		FbxScene*							pFbxScene,
 		std::vector<FBXMeshClusterData>&	meshClusterData,
 		std::vector<FbxSkeleton*>&			skeletons,
-		std::vector<SAnimationData>*		outAnimDataList );
-
-	//-----------------------------------------.
-	//	アニメーションデータリストの取得.
-	//-----------------------------------------.
-	std::vector<SAnimationData>& GetAnimDateList(){ return m_AnimDataList; }
+		SAnimationDataList*					outAnimDataList );
 
 private:
 	//-----------------------------------------.
@@ -91,5 +86,5 @@ private:
 	***************************************/
 	std::vector<FBXMeshClusterData>	m_MeshClusterData;	// メッシュデータ.
 	std::vector<FbxSkeleton*>		m_Skeletons;		// スケルトンリスト.
-	std::vector<SAnimationData>		m_AnimDataList;		// アニメーションデータリスト.
+	SAnimationDataList				m_AnimDataList;		// アニメーションデータリスト.
 };

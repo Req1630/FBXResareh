@@ -46,10 +46,9 @@ public:
 	{}
 
 	// キーフレーム行列の取得.
-	FbxMatrix GetFrameLinkMatrix( const int& meshNo, const int& i, const double& time )
+	bool GetFrameLinkMatrix( const int& meshNo, const int& i, const double& time, FbxMatrix* outMatrix )
 	{
-		FbxMatrix m;
-		if( i >= (int)KeyFrameLinkMatrix[meshNo].size() ) return m;
+		if( i >= (int)KeyFrameLinkMatrix[meshNo].size() ) return false;
 		// フレームの数.
 		int frameSize = static_cast<int>(KeyList[meshNo].size())-1;
 
@@ -72,23 +71,28 @@ public:
 		};
 		int size = frameSize/7;
 		if( time < KeyList[meshNo][size*1] ){
-			outFrameMatrix( size*0, size*1, &m );
+			outFrameMatrix( size*0, size*1, outMatrix );
 		} else if ( time < KeyList[meshNo][size*2] ){
-			outFrameMatrix( size*1, size*2, &m );
+			outFrameMatrix( size*1, size*2, outMatrix );
 		} else if ( time < KeyList[meshNo][size*3] ){
-			outFrameMatrix( size*2, size*3, &m );
+			outFrameMatrix( size*2, size*3, outMatrix );
 		} else if ( time < KeyList[meshNo][size*4] ){
-			outFrameMatrix( size*3, size*4, &m );
+			outFrameMatrix( size*3, size*4, outMatrix );
 		} else if ( time < KeyList[meshNo][size*5] ){
-			outFrameMatrix( size*4, size*5, &m );
+			outFrameMatrix( size*4, size*5, outMatrix );
 		} else if ( time < KeyList[meshNo][size*6] ){
-			outFrameMatrix( size*5, size*6, &m );
+			outFrameMatrix( size*5, size*6, outMatrix );
 		} else if ( time < KeyList[meshNo][size*7] ){
-			outFrameMatrix( size*6, size*7, &m );
+			outFrameMatrix( size*6, size*7, outMatrix );
 		} else {
-			outFrameMatrix( size*7, frameSize, &m );
+			outFrameMatrix( size*7, frameSize, outMatrix );
 		}
-		return m;
+		return true;
 	}
 
 } typedef SAnimationData;
+
+struct stAnimationDataList
+{
+	std::vector<SAnimationData> AnimList;
+} typedef SAnimationDataList;

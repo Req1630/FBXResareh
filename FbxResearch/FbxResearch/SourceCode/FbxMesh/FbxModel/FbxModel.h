@@ -27,7 +27,7 @@ public:
 	// アニメーションコントローラーの取得.
 	CFbxAnimationController* GetPtrAC();
 	// アニメーションデータの設定.
-	void SetAnimationData( const std::vector<SAnimationData>& animDataList );
+	void SetAnimationData( const SAnimationDataList& animDataList );
 
 	//-----------------------------------------.
 	//			パラメータ取得.

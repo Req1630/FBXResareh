@@ -130,9 +130,9 @@ HRESULT CFbxMesh::Create( ID3D11DeviceContext* pContext11, const char* fileName 
 	//	アニメーション.
 	//----------------------------.
 	m_pAnimLoader = std::make_unique<CFbxAnimationLoader>();
-	std::vector<SAnimationData>	animDataList;
+	SAnimationDataList	animDataList;
 	m_pAnimLoader->LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
-	if( animDataList.empty() == false ){
+	if( animDataList.AnimList.empty() == false ){
 		// 上で設定したアニメーションデータがあれば.
 		// アニメーションコントローラーを作成して.
 		// アニメーションデータを追加.
@@ -273,9 +273,9 @@ HRESULT CFbxMesh::LoadModel( const char* fileName )
 	//	アニメーションの読み込み.
 	//----------------------------.
 	m_pAnimLoader = std::make_unique<CFbxAnimationLoader>();
-	std::vector<SAnimationData>	animDataList;
+	SAnimationDataList	animDataList;
 	m_pAnimLoader->LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
-	if( animDataList.empty() == false ){
+	if( animDataList.AnimList.empty() == false ){
 		// 上で設定したアニメーションデータがあれば.
 		// アニメーションコントローラーを作成して.
 		// アニメーションデータを追加.
@@ -614,7 +614,9 @@ void CFbxMesh::AnimMatrixCalculation( const int& meahNo, FBXMeshData& meshData, 
 	FbxMatrix frameMatrix;
 	FbxMatrix vertexTransformMatrix;
 	for( auto& b : meshData.Skin.InitBonePositions ){
-		frameMatrix = pAC->GetFrameLinkMatrix( meahNo, boneIndex );
+		if( pAC->GetFrameLinkMatrix( meahNo, boneIndex, &frameMatrix ) == false ){
+			return;
+		}
 		vertexTransformMatrix = frameMatrix * b;
 		cb.Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
 		boneIndex++;

@@ -55,7 +55,7 @@ void CFbxAnimationLoader::Destroy()
 ////////////////////////////////////////////////////////////////.
 // アニメーションの読み込み.
 ////////////////////////////////////////////////////////////////.
-HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char* fileName )
+HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, const char* fileName )
 {
 	//------------------------------.
 	// インポーターの作成.
@@ -132,8 +132,8 @@ HRESULT CFbxAnimationLoader::LoadAnim( CFbxAnimationController* pAc, const char*
 	GetAnimationFrame( m_pFbxScene );
 
 	// アニメーションデータが空じゃなければリストを追加.
-	if( m_AnimDataList.empty() == false ){
-		pAc->AddAnimationData( m_AnimDataList );
+	if( m_AnimDataList.AnimList.empty() == false ){
+		*outAnimDataList = m_AnimDataList;
 	}
 
 	// インポーターの解放.
@@ -149,7 +149,7 @@ HRESULT CFbxAnimationLoader::LoadAnimationData(
 	FbxScene*							pFbxScene,
 	std::vector<FBXMeshClusterData>&	meshClusterData,
 	std::vector<FbxSkeleton*>&			skeletons,
-	std::vector<SAnimationData>*		outAnimDataList )
+	SAnimationDataList*					outAnimDataList )
 {
 	m_MeshClusterData = meshClusterData;
 	m_Skeletons = skeletons;
@@ -190,12 +190,12 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 	FbxNode* pNode = pScene->GetRootNode();
 	// アニメーションの数を取得.
 	int stackCount = pScene->GetSrcObjectCount<FbxAnimStack>();
-	m_AnimDataList.clear();
-	m_AnimDataList.resize( stackCount );
-
+	m_AnimDataList.AnimList.clear();
+	m_AnimDataList.AnimList.resize( stackCount );
+	std::vector<SAnimationData>& anmDataList = m_AnimDataList.AnimList;
 	// アニメーションの数分.
 	for( int i = 0; i < stackCount; i++ ){
-		SAnimationData& animData = m_AnimDataList[i];
+		SAnimationData& animData = anmDataList[i];
 		animData.FrameRate = framerate;	// フレームレートの設定.
 		FbxTimeSpan timeSpan;
 		// アニメーションデータ取得.
@@ -232,13 +232,13 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 
 	}
 	// アニメーションデータが正しいか確認.
-	for( size_t i = 0; i < m_AnimDataList.size(); i++ ){
-		if( m_AnimDataList[i].EndTime < 0.0 ){
+	for( size_t i = 0; i < anmDataList.size(); i++ ){
+		if( anmDataList[i].EndTime < 0.0 ){
 			// アニメーションの終了時間が 0 より少ないと、
 			// 明らかにおかしなデータなので、
 			// そのアニメーションデータを削除する.
-			m_AnimDataList[i] = m_AnimDataList.back();
-			m_AnimDataList.pop_back();
+			anmDataList[i] = anmDataList.back();
+			anmDataList.pop_back();
 			i--;
 		}
 	}

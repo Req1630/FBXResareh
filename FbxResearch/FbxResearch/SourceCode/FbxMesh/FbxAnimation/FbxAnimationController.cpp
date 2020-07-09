@@ -38,11 +38,11 @@ void CFbxAnimationController::FrameUpdate()
 ///////////////////////////////////////////////////.
 // アニメーションデータの設定.
 ///////////////////////////////////////////////////.
-void CFbxAnimationController::SetAnimDataList( const std::vector<SAnimationData>& animDataList )
+void CFbxAnimationController::SetAnimDataList( const SAnimationDataList& animDataList )
 {
 	// アニメーションデータが空だったら終了.
-	if( animDataList.empty() == true ) return;
-	m_AnimDataList = animDataList;			// アニメーションデータの設定.
+	if( animDataList.AnimList.empty() == true ) return;
+	m_AnimDataList = animDataList.AnimList;			// アニメーションデータの設定.
 	m_NowAnimation = m_AnimDataList[0];		// アニメーションの最初のデータを現在のデータに設定.
 	m_AnimSpeed = m_NowAnimation.AnimSpeed;	// アニメーション速度の設定.
 }
@@ -50,10 +50,10 @@ void CFbxAnimationController::SetAnimDataList( const std::vector<SAnimationData>
 ///////////////////////////////////////////////////.
 // アニメーションデータの追加.
 ///////////////////////////////////////////////////.
-void CFbxAnimationController::AddAnimationData( const std::vector<SAnimationData>& animationData )
+void CFbxAnimationController::AddAnimationData( const SAnimationDataList& animationData )
 {
 	// アニメーションリスト分のアニメーション追加.
-	for( auto& a : animationData ) m_AnimDataList.emplace_back( a );
+	for( auto& a : animationData.AnimList ) m_AnimDataList.emplace_back( a );
 	// アニメーションデータが空なら終了.
 	if( m_AnimDataList.empty() == true ) return;
 	m_NowAnimation = m_AnimDataList[0];		// アニメーションの最初のデータを現在のデータに設定.
@@ -86,7 +86,7 @@ void CFbxAnimationController::ChangeAnimation( int& animNumber )
 ///////////////////////////////////////////////////.
 // フレーム時の行列取得.
 ///////////////////////////////////////////////////.
-FbxMatrix CFbxAnimationController::GetFrameLinkMatrix( const int& meshNo, const int& i )
+bool CFbxAnimationController::GetFrameLinkMatrix( const int& meshNo, const int& i, FbxMatrix* outMatrix )
 {
-	return m_NowAnimation.GetFrameLinkMatrix( meshNo, i, m_NowAnimation.NowTime );
+	return m_NowAnimation.GetFrameLinkMatrix( meshNo, i, m_NowAnimation.NowTime, outMatrix );
 }

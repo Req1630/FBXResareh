@@ -55,7 +55,7 @@ CFbxAnimationController* CFbxModel::GetPtrAC()
 //////////////////////////////////////////////////////.
 // アニメーションデータの設定.
 //////////////////////////////////////////////////////.
-void CFbxModel::SetAnimationData( const std::vector<SAnimationData>& animDataList )
+void CFbxModel::SetAnimationData( const SAnimationDataList& animDataList )
 {
 	m_pAc = new CFbxAnimationController;
 	m_pAc->SetAnimDataList( animDataList );

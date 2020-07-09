@@ -226,8 +226,10 @@ bool CFbxRenderer::GetBoneConstBuffer(
 	FbxMatrix vertexTransformMatrix;
 	for( auto& b : skinData.InitBonePositions ){
 		if( boneIndex >= BONE_COUNT_MAX ) break;
-
-		frameMatrix = pAc->GetFrameLinkMatrix( meahNo, boneIndex );
+		if( pAc->GetFrameLinkMatrix( meahNo, boneIndex, &frameMatrix ) == false ){
+			_ASSERT_EXPR( false, "モデルとアニメーションのボーンの数が合いません" );
+			MessageBox( nullptr, "モデルとアニメーションのボーンの数が合いません", "Warning", MB_OK );
+		}
 		vertexTransformMatrix = frameMatrix * b;
 		pOutCB->Bone[boneIndex] = FbxMatrixConvertDXMMatrix( vertexTransformMatrix );
 		boneIndex++;

@@ -170,9 +170,9 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	//	アニメーションの読み込み.
 	//---------------------------------------------.
 	CFbxAnimationLoader animLoader;				// アニメーション読み込みクラス.
-	std::vector<SAnimationData>	animDataList;	// アニメーションデータ.
+	SAnimationDataList	animDataList;	// アニメーションデータ.
 	animLoader.LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
-	if( animDataList.empty() == false ){
+	if( animDataList.AnimList.empty() == false ){
 		// 上で設定したアニメーションデータがあれば.
 		// アニメーションコントローラーを作成して.
 		// アニメーションデータを追加.
@@ -601,13 +601,19 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 
 	m_MeshClusterData.emplace_back();
 
+
 	// ※Cluster == Bone.
 	// ボーンの数.
 	int boneCount = pSkin->GetClusterCount();
+
+	std::vector<std::string> boneNames(boneCount);
+
 	for( int boneIndex = 0; boneIndex < boneCount; boneIndex++ ){
 		// ボーン情報取得.
 		FbxCluster* pCluster = pSkin->GetCluster( boneIndex );
 		FbxNode* pNode = pCluster->GetLink();
+
+		boneNames[boneIndex] = pNode->GetName();
 
 		m_MeshClusterData.back().ClusterName.emplace_back( pNode->GetName() );
 
@@ -620,7 +626,6 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, FBXMeshData& meshData, std::vect
 		newbindpose = bindPoseMatrix.Inverse() * newbindpose;
 		// 初期ボーン座標の設定.
 		meshData.Skin.InitBonePositions.emplace_back( newbindpose );
-
 		// ボーンインデックスとウェイトの設定.
 		int*	boneVertexIndices = pCluster->GetControlPointIndices();
 		double* boneVertexWeights = pCluster->GetControlPointWeights();
