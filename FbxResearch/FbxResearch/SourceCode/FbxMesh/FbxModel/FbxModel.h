@@ -43,6 +43,8 @@ public:
 
 	// ボーン座標の取得.
 	DirectX::XMFLOAT3 GetBonePosition( const char* boneName );
+	// ボーン行列の取得.
+	DirectX::XMMATRIX GetBoneMatrix( const char* boneName );
 
 	//-----------------------------------------.
 	//			パラメータ設定.

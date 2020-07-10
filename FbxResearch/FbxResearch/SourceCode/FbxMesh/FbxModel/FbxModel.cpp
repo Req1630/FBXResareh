@@ -113,21 +113,12 @@ CFbxAnimationController CFbxModel::GetAnimationController()
 //////////////////////////////////////////////////////.
 DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
 {
-	int meshNo = m_BoneNumberList[boneName].first;
-	int boneNo = m_BoneNumberList[boneName].second;
+	DirectX::XMFLOAT4X4 localBonePos;
+	// ボーン行列を取得して、Float4x4に変換.
+	DirectX::XMStoreFloat4x4( &localBonePos, GetBoneMatrix( boneName ) );
 
-	FbxMatrix frameMatrix;
-	if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
-		_ASSERT_EXPR( false, "モデルとアニメーションのボーンの数が合いません" );
-		MessageBox( nullptr, "モデルとアニメーションのボーンの数が合いません", "Warning", MB_OK );
-	}
-	DirectX::XMMATRIX outMat = FbxMatrixConvertDXMMatrix( frameMatrix );
-	DirectX::XMFLOAT4X4 float4x4;
-	DirectX::XMStoreFloat4x4( &float4x4, outMat );
-
-	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX mTarn, mRot, mScale;
-
+	
 	// 拡大縮小行列.
 	mScale = DirectX::XMMatrixScaling(
 		m_Scale.x, m_Scale.y, m_Scale.z );
@@ -135,20 +126,46 @@ DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
 	mRot = DirectX::XMMatrixRotationRollPitchYaw(
 		m_Rotation.x, m_Rotation.y, m_Rotation.z );
 	// 平行移動行列.
+	// 行列のオフセット値を取得.
+	// _41:x, _42:y. _43:z.
 	mTarn = DirectX::XMMatrixTranslation(
-		float4x4._41, float4x4._42, float4x4._43 );
-	world = mTarn * mScale * mRot;
-
+		localBonePos._41, localBonePos._42, localBonePos._43 );
+	
 	// ワールド行列作成.
-	DirectX::XMFLOAT4X4 world4x4;
-	DirectX::XMStoreFloat4x4( &world4x4, world );
+	DirectX::XMFLOAT4X4 worldBonePos;
+	DirectX::XMStoreFloat4x4( &worldBonePos, mTarn * mScale * mRot );
 
-	DirectX::XMFLOAT3 pos;
-	pos.x = world4x4._41 + m_Position.x;
-	pos.y = world4x4._42 + m_Position.y;
-	pos.z = world4x4._43 + m_Position.z;
+	return
+	{
+		// 取得したボーン座標を自分の座標と足して返す.
+		worldBonePos._41 + m_Position.x,
+		worldBonePos._42 + m_Position.y,
+		worldBonePos._43 + m_Position.z,
+	};
 
-	return pos;
+}
+
+//////////////////////////////////////////////////////.
+// ボーン行列の取得.
+//////////////////////////////////////////////////////.
+DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName )
+{
+	int meshNo = 0;	// メッシュ番号.
+	int boneNo = 0;	// ボーン番号.
+	try {
+		meshNo = m_BoneNumberList.at(boneName).first;
+		boneNo = m_BoneNumberList.at(boneName).second;
+	} catch( std::out_of_range& ) {
+		_ASSERT_EXPR( false, "指定したボーン名がありません" );
+		MessageBox( nullptr, "指定したボーン名がありません", "Warning", MB_OK );
+	}
+	FbxMatrix frameMatrix;
+	if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+		_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
+		MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+	}
+	// FbxMatrixをDirectXMatrixに変換して返す.
+	return FbxMatrixConvertDXMMatrix( frameMatrix );
 }
 
 //////////////////////////////////////////////////////.

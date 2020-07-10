@@ -108,12 +108,12 @@ HRESULT CMain::Load()
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
 		"Data\\Model\\sayaka_fbx\\sayaka_fbx.fbx",
-		"Data\\Model\\Normals.fbx",
 	};
+	const char* boxModelName = "Data\\Model\\box.fbx";
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
 	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
-	m_FbxModelLoader->LoadModel( m_FbxBone.get(), fileName[0] );
+	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
 	//SAnimationDataList animDataList;
 	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[6] );
@@ -136,6 +136,7 @@ void CMain::Update()
 	CImGuiManager::SetingNewFrame();
 	
 	const char* boneName = "Head";
+	const float boneBoxScale = 0.01f;
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { 0.0f, 0.0f, 0.0f };
@@ -225,9 +226,9 @@ void CMain::Update()
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
-		m_FbxBone->SetPosition( { 2.0f, 0.0f, 0.0f } );
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition("Head") );
 		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( { 5.0f, 5.0f, 5.0f } );
+		m_FbxBone->SetScale( boneBoxScale );
 		m_FbxBone->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),
@@ -306,9 +307,9 @@ void CMain::Update()
 			*m_pCamera.get(),
 			*m_pLight.get() );
 
-		m_FbxBone->SetPosition( { 2.0f, 0.0f, 0.0f } );
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition("Head") );
 		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( { 5.0f, 5.0f, 5.0f } );
+		m_FbxBone->SetScale( boneBoxScale );
 		m_FbxBone->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),
