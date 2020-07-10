@@ -28,12 +28,12 @@ struct Skin
 // 頂点シェーダーの入力パラメータ.
 struct VS_INPUT
 {
-    float4	Pos			: POSITION;		// 座標.
-    float4	Normal		: NORMAL;		// 法線.
-    float4	Color		: COLOR;		// 頂点カラー.
-	float2	UV			: TEXCOORD;		// UV座標.
-	uint4	Bones		: BONE_INDEX;	// ボーンのインデックス.
-	float4	Weights		: BONE_WEIGHT;	// ボーンのウェイト.
+	float4 Pos		: POSITION;		// 座標.
+	float4 Normal	: NORMAL;		// 法線.
+	float4 Color	: COLOR;		// 頂点カラー.
+	float2 UV		: TEXCOORD;		// UV座標.
+	uint4 Bones		: BONE_INDEX;	// ボーンのインデックス.
+	float4 Weights	: BONE_WEIGHT;	// ボーンのウェイト.
 };
 
 // 頂点シェーダーの出力パラメータ.

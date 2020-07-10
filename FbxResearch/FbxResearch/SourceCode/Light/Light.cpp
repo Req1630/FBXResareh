@@ -24,7 +24,7 @@ DirectX::XMMATRIX CLight::GetVP()
 		{ VIEW_UP_VECTOR.x, VIEW_UP_VECTOR.y, VIEW_UP_VECTOR.z } );	// カメラベクトル.
 
 	// プロジェクション(射影)変換.
-	m_ProjMatrix = DirectX::XMMatrixPerspectiveFovLH(
+	m_ProjMatrix = DirectX::XMMatrixOrthographicLH(
 		m_ViewingAngle,				// 視野角.
 		SCREEN_ASPECT_RATIO,		// 画面アスペクト比.
 		m_MinClippingDistance,		// 最小描画距離.

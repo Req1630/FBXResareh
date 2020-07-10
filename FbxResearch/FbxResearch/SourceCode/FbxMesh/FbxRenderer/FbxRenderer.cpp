@@ -72,7 +72,7 @@ void CFbxRenderer::Render(
 	CFbxAnimationController* pAc )
 {
 	// ワールド行列取得.
-	DirectX::XMMATRIX mWorld	= mdoel.GetWorldMatrix();
+	DirectX::XMMATRIX mWorld = mdoel.GetWorldMatrix();
 	// ワールド、ビュー、プロジェクション行列.
 	DirectX::XMMATRIX mWVP = mWorld * camera.GetViewMatrix() * camera.GetProjMatrix();
 

@@ -108,11 +108,12 @@ HRESULT CMain::Load()
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
 		"Data\\Model\\sayaka_fbx\\sayaka_fbx.fbx",
+		"Data\\Model\\Normals.fbx",
 	};
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[10] );
-	m_FbxModelLoader->LoadModel( m_FbxBone.get(), fileName[6] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
+	m_FbxModelLoader->LoadModel( m_FbxBone.get(), fileName[0] );
 
 	//SAnimationDataList animDataList;
 	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[6] );
@@ -134,14 +135,15 @@ void CMain::Update()
 	// ImGui‚ÌƒtƒŒ[ƒ€‰Šú‰».
 	CImGuiManager::SetingNewFrame();
 	
-	const char* boneName = "";
+	const char* boneName = "Head";
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectScale = { 0.05f, 0.05f, 0.05f };
 	// ƒJƒƒ‰§Œä.
 	{
-		static DirectX::XMFLOAT3 cameraPos = { 0.0f, 4.0f, 17.0f };
+		static DirectX::XMFLOAT3 cameraPos = { 0.0f, 6.0f, 15.0f };
+		static DirectX::XMFLOAT3 lightPos = { 0.0f, 6.0f, 15.0f };
 		if( GetAsyncKeyState('C') & 0x8000 ){
 			if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) cameraPos.y += 0.1f;
 			if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) cameraPos.y -= 0.1f;
@@ -150,10 +152,18 @@ void CMain::Update()
 			if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) cameraPos.z += 0.1f;
 			if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) cameraPos.z -= 0.1f;
 		}
+		if( GetAsyncKeyState('L') & 0x8000 ){
+			if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) lightPos.y += 0.1f;
+			if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) lightPos.y -= 0.1f;
+			if( GetAsyncKeyState(VK_NUMPAD4) & 0x8000 ) lightPos.x += 0.1f;
+			if( GetAsyncKeyState(VK_NUMPAD6) & 0x8000 ) lightPos.x -= 0.1f;
+			if( GetAsyncKeyState(VK_NUMPAD7) & 0x8000 ) lightPos.z += 0.1f;
+			if( GetAsyncKeyState(VK_NUMPAD9) & 0x8000 ) lightPos.z -= 0.1f;
+		}
 		m_pCamera->SetPosition( cameraPos );
-		m_pCamera->SetLookPosition( { 0.0f, 0.0f, 0.0f } );
+		m_pCamera->SetLookPosition( { 0.0f, 3.0f, 0.0f } );
 		m_pCamera->InitViewProj();
-		m_pLight->SetPosition( { 0.0f, 4.0f, 17.0f } );
+		m_pLight->SetPosition( lightPos );
 		m_pLight->SetLookPosition( { 0.0f, 0.0f, 0.0f } );
 	}
 
@@ -215,9 +225,9 @@ void CMain::Update()
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition(boneName) );
+		m_FbxBone->SetPosition( { 2.0f, 0.0f, 0.0f } );
 		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( objectScale );
+		m_FbxBone->SetScale( { 5.0f, 5.0f, 5.0f } );
 		m_FbxBone->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),
@@ -296,9 +306,9 @@ void CMain::Update()
 			*m_pCamera.get(),
 			*m_pLight.get() );
 
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition(boneName) );
+		m_FbxBone->SetPosition( { 2.0f, 0.0f, 0.0f } );
 		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( objectScale );
+		m_FbxBone->SetScale( { 5.0f, 5.0f, 5.0f } );
 		m_FbxBone->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),

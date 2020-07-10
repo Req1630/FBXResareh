@@ -113,7 +113,42 @@ CFbxAnimationController CFbxModel::GetAnimationController()
 //////////////////////////////////////////////////////.
 DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
 {
-	return DirectX::XMFLOAT3();
+	int meshNo = m_BoneNumberList[boneName].first;
+	int boneNo = m_BoneNumberList[boneName].second;
+
+	FbxMatrix frameMatrix;
+	if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+		_ASSERT_EXPR( false, "モデルとアニメーションのボーンの数が合いません" );
+		MessageBox( nullptr, "モデルとアニメーションのボーンの数が合いません", "Warning", MB_OK );
+	}
+	DirectX::XMMATRIX outMat = FbxMatrixConvertDXMMatrix( frameMatrix );
+	DirectX::XMFLOAT4X4 float4x4;
+	DirectX::XMStoreFloat4x4( &float4x4, outMat );
+
+	DirectX::XMMATRIX world;
+	DirectX::XMMATRIX mTarn, mRot, mScale;
+
+	// 拡大縮小行列.
+	mScale = DirectX::XMMatrixScaling(
+		m_Scale.x, m_Scale.y, m_Scale.z );
+	// 回転行列.
+	mRot = DirectX::XMMatrixRotationRollPitchYaw(
+		m_Rotation.x, m_Rotation.y, m_Rotation.z );
+	// 平行移動行列.
+	mTarn = DirectX::XMMatrixTranslation(
+		float4x4._41, float4x4._42, float4x4._43 );
+	world = mTarn * mScale * mRot;
+
+	// ワールド行列作成.
+	DirectX::XMFLOAT4X4 world4x4;
+	DirectX::XMStoreFloat4x4( &world4x4, world );
+
+	DirectX::XMFLOAT3 pos;
+	pos.x = world4x4._41 + m_Position.x;
+	pos.y = world4x4._42 + m_Position.y;
+	pos.z = world4x4._43 + m_Position.z;
+
+	return pos;
 }
 
 //////////////////////////////////////////////////////.

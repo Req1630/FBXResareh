@@ -45,7 +45,6 @@ void CCamera::InitViewProj()
 		SCREEN_ASPECT_RATIO,		// 画面アスペクト比.
 		m_MinClippingDistance,		// 最小描画距離.
 		m_MaxClippingDistance );	// 最大描画距離.
-	
 }
 
 //--------------------------------------------.

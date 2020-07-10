@@ -441,6 +441,7 @@ void CFbxModelLoader::LoadNormals( FbxMesh* pMesh, VERTEX& vertex, int ctrlPoint
 			break;
 		}
 	}
+	break;
 	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{
@@ -507,6 +508,7 @@ void CFbxModelLoader::LoadColors( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointI
 			break;
 		}
 	}
+	break;
 	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{
@@ -573,6 +575,7 @@ void CFbxModelLoader::LoadUV( FbxMesh* pMesh, VERTEX& vertex, int ctrlPointIndex
 			break;
 		}
 	}
+	break;
 	// eByPolygonVertex : ポリゴンに対しての法線.
 	case FbxGeometryElement::eByPolygonVertex:
 	{

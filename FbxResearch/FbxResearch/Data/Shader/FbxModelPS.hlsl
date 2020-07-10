@@ -34,9 +34,10 @@ PS_OUTPUT PS_Main( VS_OUTPUT input )
 	
 	PS_OUTPUT output = (PS_OUTPUT)0;
 	output.Color = g_Texture.Sample( g_samLinear, input.UV );
-//	output.Color = Color;
+	output.Color = Color;
+//	output.Color = input.Normal;
 	output.Normal = input.Normal;
-	output.ZDepth = input.ZDepth.z / input.ZDepth.w;
+	output.ZDepth = input.ZDepth;
 	
 	return output;
 }

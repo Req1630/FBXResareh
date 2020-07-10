@@ -8,7 +8,7 @@ VS_OUTPUT VS_Main( VS_INPUT input )
     VS_OUTPUT output = (VS_OUTPUT)0;
 	
 	output.Pos = mul(input.Pos, g_WVP);
-	output.Normal = normalize(mul(input.Normal, g_W));
+	output.Normal.xyz = normalize(mul(input.Normal.xyz, (float3x3)g_W));
 	output.Normal.w = 0.0f;
 	
 	output.Color = input.Color;
@@ -17,8 +17,8 @@ VS_OUTPUT VS_Main( VS_INPUT input )
 	float4 pos = mul(input.Pos, g_W);
 	output.EyeDir = normalize( g_CameraPos - pos );
 	
-	pos = mul(pos, g_LightWVP);
-	output.ZDepth = pos;
+	output.ZDepth = mul(pos, g_LightWVP);
+	output.ZDepth = output.ZDepth.z / output.ZDepth.w;
 	
 	output.LightDir = normalize( g_LightDir );
 	
