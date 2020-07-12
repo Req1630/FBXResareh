@@ -42,9 +42,9 @@ public:
 	CFbxAnimationController GetAnimationController();
 
 	// ボーン座標の取得.
-	DirectX::XMFLOAT3 GetBonePosition( const char* boneName );
+	DirectX::XMFLOAT3 GetBonePosition( const char* boneName, CFbxAnimationController* pAC = nullptr );
 	// ボーン行列の取得.
-	DirectX::XMMATRIX GetBoneMatrix( const char* boneName );
+	DirectX::XMMATRIX GetBoneMatrix( const char* boneName, CFbxAnimationController* pAC = nullptr );
 
 	//-----------------------------------------.
 	//			パラメータ設定.

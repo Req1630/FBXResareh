@@ -111,11 +111,11 @@ CFbxAnimationController CFbxModel::GetAnimationController()
 //////////////////////////////////////////////////////.
 // ボーン座標の取得.
 //////////////////////////////////////////////////////.
-DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
+DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName, CFbxAnimationController* pAC )
 {
 	DirectX::XMFLOAT4X4 localBonePos;
 	// ボーン行列を取得して、Float4x4に変換.
-	DirectX::XMStoreFloat4x4( &localBonePos, GetBoneMatrix( boneName ) );
+	DirectX::XMStoreFloat4x4( &localBonePos, GetBoneMatrix( boneName, pAC ) );
 
 	DirectX::XMMATRIX mTarn, mRot, mScale;
 	
@@ -148,7 +148,7 @@ DirectX::XMFLOAT3 CFbxModel::GetBonePosition( const char* boneName )
 //////////////////////////////////////////////////////.
 // ボーン行列の取得.
 //////////////////////////////////////////////////////.
-DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName )
+DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName, CFbxAnimationController* pAC )
 {
 	int meshNo = 0;	// メッシュ番号.
 	int boneNo = 0;	// ボーン番号.
@@ -160,9 +160,17 @@ DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName )
 		MessageBox( nullptr, "指定したボーン名がありません", "Warning", MB_OK );
 	}
 	FbxMatrix frameMatrix;
-	if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
-		_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
-		MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+	if( pAC == nullptr ){
+		if( pAC->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
+			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+		}
+	} else {
+		if( m_pAc == nullptr ) return FbxMatrixConvertDXMMatrix( frameMatrix );
+		if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
+			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+		}
 	}
 	// FbxMatrixをDirectXMatrixに変換して返す.
 	return FbxMatrixConvertDXMMatrix( frameMatrix );
