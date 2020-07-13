@@ -102,7 +102,7 @@ HRESULT CMain::Load()
 		"Data\\Model\\UE_Animation\\Walk_02_Cheerful_Loop_IP.FBX",
 		"Data\\Model\\UE_Animation\\Walk_04_Texting_Loop_IP.FBX",
 		"Data\\Model\\Liz\\Model\\Liz_Model.fbx",
-		"Data\\Model\\Query\\Animations\\Query_Idle.fbx",
+		"Data\\Model\\Liz\\Animations\\Liz_Idle.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Jump.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",

@@ -79,6 +79,14 @@ private:
 	// インデックスバッファ作成.
 	HRESULT CreateIndexBuffers( FBXMeshData& meshData );
 
+	//-----------------------------------------.
+	//		ボーン名系.
+	//-----------------------------------------.
+
+	// ボーン名リストの作成.
+	void CreateBoneNameList( CFbxModel* pModelData, const char* fileName );
+	// ボーンリストをテキストで書き込み.
+	void WritingBoneNameList( std::map<std::string, std::pair<int, int>>& boneList, const char* fileName );
 
 private:
 	/***************************************
