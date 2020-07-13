@@ -76,6 +76,10 @@ void CFbxModel::BoneNameDataCreate()
 		}
 		meshNo++;
 	}
+	// ƒ{[ƒ“–¼‚Ì‘‚«‚İ.
+	for( auto& b : m_BoneNumberList ){
+
+	}
 }
 
 //////////////////////////////////////////////////////.
