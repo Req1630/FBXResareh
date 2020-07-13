@@ -69,6 +69,7 @@ public:
 				}
 			}
 		};
+
 		int size = frameSize/7;
 		if( time < KeyList[meshNo][size*1] ){
 			outFrameMatrix( size*0, size*1, outMatrix );

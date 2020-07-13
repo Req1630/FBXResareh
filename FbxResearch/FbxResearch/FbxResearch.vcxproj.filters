@@ -30,9 +30,6 @@
     <ClCompile Include="SourceCode\Utility\FileManager\FileManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SourceCode\FbxMesh\FbxMesh.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="SourceCode\Camera\Camera.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -102,9 +99,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="SourceCode\Utility\FileManager\FileManager.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="SourceCode\FbxMesh\FbxMesh.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="SourceCode\Camera\Camera.h">

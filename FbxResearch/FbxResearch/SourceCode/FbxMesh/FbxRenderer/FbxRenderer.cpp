@@ -71,6 +71,12 @@ void CFbxRenderer::Render(
 	CLight& light,
 	CFbxAnimationController* pAc )
 {
+	// 使用するシェーダーの設定.
+	m_pContext11->VSSetShader( m_pVertexShader, nullptr, 0 );
+	m_pContext11->PSSetShader( m_pPixelShader, nullptr, 0 );
+	// プリティブトポロジーをセット.
+	m_pContext11->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
 	// ワールド行列取得.
 	DirectX::XMMATRIX mWorld = mdoel.GetWorldMatrix();
 	// ワールド、ビュー、プロジェクション行列.
@@ -80,21 +86,11 @@ void CFbxRenderer::Render(
 	UINT offset = 0;
 
 	// アニメーションフレームの更新.
-	if( pAc == nullptr ){
-		// モデルデータのアニメーションコントローラーを使用.
-		if( mdoel.GetPtrAC() != nullptr ) mdoel.GetPtrAC()->FrameUpdate();
-	} else {
-		// デフォルト引数のアニメーションコントローラーを使用.
-		if( pAc != nullptr ) pAc->FrameUpdate();
-	}
+	AnimationFrameUpdate( mdoel, pAc );
 
 	int meshNo = 0;
 	// メッシュデータ分描画.
 	for( auto& m : mdoel.GetMeshData() ){
-		// 使用するシェーダーの設定.
-		m_pContext11->VSSetShader( m_pVertexShader, nullptr, 0 );
-		m_pContext11->PSSetShader( m_pPixelShader, nullptr, 0 );
-
 		// アニメーションの行列計算.
 		AnimMatrixCalculation( mdoel, meshNo, m, pAc );
 		meshNo++;
@@ -103,14 +99,12 @@ void CFbxRenderer::Render(
 		m_pContext11->IASetVertexBuffers( 0, 1, &m.pVertexBuffer, &stride, &offset );
 		m_pContext11->IASetIndexBuffer( m.pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		m_pContext11->IASetInputLayout( m_pVertexLayout );
-		// プリティブトポロジーをセット.
-		m_pContext11->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		
-		D3D11_MAPPED_SUBRESOURCE pdata;
+		D3D11_MAPPED_SUBRESOURCE pData;
 		if( SUCCEEDED ( m_pContext11->Map( 
 			m_pCBufferPerMesh, 0, 
 			D3D11_MAP_WRITE_DISCARD, 0, 
-			&pdata )))
+			&pData )))
 		{
 			CBUFFER_PER_MESH cb;
 			// ワールド行列を転置して渡す.
@@ -124,9 +118,7 @@ void CFbxRenderer::Render(
 			// ライトの方向を渡す.
 			cb.LightDir = light.GetDirection();
 
-			memcpy_s(
-				pdata.pData, pdata.RowPitch,
-				(void*)(&cb), sizeof(cb) );
+			memcpy_s( pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb) );
 			m_pContext11->Unmap( m_pCBufferPerMesh, 0 );
 		}
 		// 上で設定したコンスタントバッファをどのシェーダーで使うか.
@@ -137,17 +129,14 @@ void CFbxRenderer::Render(
 		if( SUCCEEDED ( m_pContext11->Map( 
 			m_pCBufferPerMaterial, 0, 
 			D3D11_MAP_WRITE_DISCARD, 0, 
-			&pdata )))
+			&pData )))
 		{
 			CBUFFER_PER_MATERIAL cb;
 			cb.Ambient	= m.Material.Ambient;	// アンビエント.
 			cb.Diffuse	= m.Material.Diffuse;	// ディフューズ.
 			cb.Specular = m.Material.Specular;	// スペキュラ.
 
-			memcpy_s( 
-				pdata.pData, pdata.RowPitch, 
-				(void*)(&cb), sizeof(cb) );
-
+			memcpy_s( pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb) );
 			m_pContext11->Unmap( m_pCBufferPerMaterial, 0 );
 		}
 		// 上で設定したコンスタントバッファをどのシェーダーで使うか.
@@ -173,6 +162,29 @@ void CFbxRenderer::Render(
 }
 
 ////////////////////////////////////////////////.
+// アニメーションフレームの更新.
+////////////////////////////////////////////////.
+void CFbxRenderer::AnimationFrameUpdate( CFbxModel& mdoel, CFbxAnimationController* pAc )
+{
+	// アニメーションフレームの更新.
+	if( pAc == nullptr ){
+		// モデルデータのアニメーションコントローラーを使用.
+		if( mdoel.GetPtrAC() != nullptr ){
+			// アニメーション用の頂点シェーダーの設定.
+			m_pContext11->VSSetShader( m_pVertexAnimShader, nullptr, 0 );
+			mdoel.GetPtrAC()->FrameUpdate();
+		}
+	} else {
+		// デフォルト引数のアニメーションコントローラーを使用.
+		if( pAc != nullptr ){
+			// アニメーション用の頂点シェーダーの設定.
+			m_pContext11->VSSetShader( m_pVertexAnimShader, nullptr, 0 );
+			pAc->FrameUpdate();
+		}
+	}
+}
+
+////////////////////////////////////////////////.
 // アニメーション用の行列計算.
 ////////////////////////////////////////////////.
 void CFbxRenderer::AnimMatrixCalculation(
@@ -189,9 +201,6 @@ void CFbxRenderer::AnimMatrixCalculation(
 		// デフォルト引数のアニメーションコントローラーを使用.
 		if( GetBoneConstBuffer( meshData.Skin, meahNo, pAc, &cb ) == false ) return;
 	}
-
-	// アニメーション用の頂点シェーダーの設定.
-	m_pContext11->VSSetShader( m_pVertexAnimShader, nullptr, 0 );
 
 	D3D11_MAPPED_SUBRESOURCE pdata;
 	if( SUCCEEDED ( m_pContext11->Map( 

@@ -161,13 +161,13 @@ DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName, CFbxAnimationC
 	}
 	FbxMatrix frameMatrix;
 	if( pAC == nullptr ){
-		if( pAC->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+		if( m_pAc == nullptr ) return FbxMatrixConvertDXMMatrix( frameMatrix );
+		if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
 			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
 			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
 		}
 	} else {
-		if( m_pAc == nullptr ) return FbxMatrixConvertDXMMatrix( frameMatrix );
-		if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
+		if( pAC->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
 			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
 			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
 		}

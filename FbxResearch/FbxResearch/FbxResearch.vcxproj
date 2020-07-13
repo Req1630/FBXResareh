@@ -130,7 +130,6 @@
     <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationController.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationLoader.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxInclude\FbxInclude.cpp" />
-    <ClCompile Include="SourceCode\FbxMesh\FbxMesh.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxModel\FbxModel.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.cpp" />
@@ -158,7 +157,6 @@
     <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationData.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxAnimation\FbxAnimationLoader.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxInclude\FbxInclude.h" />
-    <ClInclude Include="SourceCode\FbxMesh\FbxMesh.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxMeshData.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxModel\FbxModel.h" />

@@ -10,6 +10,7 @@ VS_OUTPUT VS_Main( VS_INPUT input )
 	output.Pos = mul(input.Pos, g_WVP);
 	output.Normal.xyz = normalize(mul(input.Normal.xyz, (float3x3)g_W));
 	output.Normal.w = 0.0f;
+
 	
 	output.Color = input.Color;
 	output.UV = input.UV;

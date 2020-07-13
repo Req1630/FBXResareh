@@ -137,7 +137,6 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// FbxSkeletonの数を取得.
 	int skeletonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
 	int skeletonNo = 0;
-	m_Skeletons.clear();
 	m_Skeletons.resize( skeletonNum );
 	for( auto& s : m_Skeletons ){
 		// FbxSkeletonの取得.
@@ -151,7 +150,6 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// FbxMeshの数を取得.
 	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
 	int meshNo = 0;
-	m_MeshClusterData.clear();
 	pModelData->ReSizeMeshData( meshNum );
 	for( auto& m : pModelData->GetMeshData() ){
 		// メッシュデータの取得.
@@ -180,6 +178,11 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 		// アニメーションデータを追加.
 		pModelData->SetAnimationData( animDataList );
 	}
+
+	m_MeshClusterData.clear();
+	m_MeshClusterData.shrink_to_fit();
+	m_Skeletons.clear();
+	m_Skeletons.shrink_to_fit();
 
 	return S_OK;
 }
@@ -372,6 +375,8 @@ void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 			vertexCounter++;
 		}
 	}
+	// 余分なメモリの削除.
+	meshData.Vertices.shrink_to_fit();
 }
 
 //////////////////////////////////////////////////////////////////////.
@@ -388,6 +393,8 @@ void CFbxModelLoader::LoadIndices( FbxMesh* pMesh, FBXMeshData& meshData )
 		meshData.Indices.emplace_back( i * 3 + 1 );
 		meshData.Indices.emplace_back( i * 3 + 0 );
 	}
+	// 余分なメモリの削除.
+	meshData.Indices.shrink_to_fit();
 }
 
 //////////////////////////////////////////////////////////////////////.
@@ -640,6 +647,7 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, SkinData& skinData, std::vector<
 			bones[cpIndex].emplace_back( boneIndex );
 		}
 	}
+
 	// ウェイトを重い順にソート.
 	for( int i = 0; i < (int)weights.size(); i++ ){
 		for( int m = (int)weights[i].size(); m > 1; m-- ){
@@ -657,6 +665,11 @@ void CFbxModelLoader::LoadSkin( FbxMesh* pMesh, SkinData& skinData, std::vector<
 			}
 		}
 	}
+
+	// 余分なメモリの削除.
+	m_MeshClusterData.back().ClusterName.shrink_to_fit();
+	skinData.InitBonePositions.shrink_to_fit();
+	skinData.BoneName.shrink_to_fit();
 }
 
 //////////////////////////////////////////////////////////////////////.

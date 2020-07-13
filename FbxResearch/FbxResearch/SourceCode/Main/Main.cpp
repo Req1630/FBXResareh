@@ -9,7 +9,6 @@
 #include "..\Utility\FrameRate\FrameRate.h"
 #include "..\FbxMesh\FbxAnimation\FbxAnimationController.h"
 #include "..\FbxMesh\FbxAnimation\FbxAnimationLoader.h"
-#include "..\FbxMesh\FbxMesh.h"
 
 #include "..\Camera\Camera.h"
 #include "..\Light\Light.h"
@@ -103,7 +102,7 @@ HRESULT CMain::Load()
 		"Data\\Model\\UE_Animation\\Walk_02_Cheerful_Loop_IP.FBX",
 		"Data\\Model\\UE_Animation\\Walk_04_Texting_Loop_IP.FBX",
 		"Data\\Model\\Liz\\Model\\Liz_Model.fbx",
-		"Data\\Model\\Liz\\Animations\\Liz_Idle.fbx",
+		"Data\\Model\\Query\\Animations\\Query_Idle.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Jump.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
@@ -136,7 +135,7 @@ void CMain::Update()
 	CImGuiManager::SetingNewFrame();
 	
 	const char* boneName = "Head";
-	const float boneBoxScale = 0.01f;
+	const float boneBoxScale = 0.001f;
 
 	static DirectX::XMFLOAT3 objectPos = { 0.0f, 0.0f, 0.0f };
 	static DirectX::XMFLOAT3 objectRot = { 0.0f, 0.0f, 0.0f };
@@ -220,13 +219,13 @@ void CMain::Update()
 			m_FbxModel->SetPosition( objectPos );
 			m_FbxModel->SetRotation( objectRot );
 			m_FbxModel->SetScale( objectScale );
-			m_FbxModel->SetAnimSpeed( 0.01 );
+			m_FbxModel->SetAnimSpeed( 0.00 );
 			m_FbxRenderer->Render(
 				*m_FbxModel.get(),
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition("Head") );
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
 		m_FbxBone->SetScale( boneBoxScale );
 		m_FbxBone->SetAnimSpeed( 0.01 );
@@ -301,13 +300,13 @@ void CMain::Update()
 		m_FbxModel->SetPosition( objectPos );
 		m_FbxModel->SetRotation( objectRot );
 		m_FbxModel->SetScale( objectScale );
-		m_FbxModel->SetAnimSpeed( 0.01 );
+		m_FbxModel->SetAnimSpeed( 0.00 );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
 			*m_pCamera.get(),
 			*m_pLight.get() );
 
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition("Head") );
+		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
 		m_FbxBone->SetScale( boneBoxScale );
 		m_FbxBone->SetAnimSpeed( 0.01 );

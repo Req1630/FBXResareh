@@ -110,7 +110,6 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	//-----------------------------------.
 	// FbxSkeletonを取得.
 	int skeltonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
-	m_Skeletons.clear();
 	m_Skeletons.resize(skeltonNum);
 	for( int i = 0; i < skeltonNum; i++ ){
 		m_Skeletons[i] = m_pFbxScene->GetSrcObject<FbxSkeleton>(i);
@@ -120,8 +119,7 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	// FbxMeshの数を取得.
 	//-----------------------------------.
 	// FbxMeshを取得.
-	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
-	m_MeshClusterData.clear();
+	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();	
 	m_MeshClusterData.resize( meshNum );
 	for( int i = 0; i < meshNum; i++ ){
 		LoadSkin( m_pFbxScene->GetSrcObject<FbxMesh>(i), m_MeshClusterData[i] );
@@ -135,6 +133,12 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	if( m_AnimDataList.AnimList.empty() == false ){
 		*outAnimDataList = m_AnimDataList;
 	}
+
+	// 余分なメモリの削除.
+	m_Skeletons.clear();
+	m_Skeletons.shrink_to_fit();
+	m_MeshClusterData.clear();
+	m_MeshClusterData.shrink_to_fit();
 
 	// インポーターの解放.
 	SAFE_DESTROY( pFbxImpoter );
@@ -155,6 +159,13 @@ HRESULT CFbxAnimationLoader::LoadAnimationData(
 	m_Skeletons = skeletons;
 	GetAnimationFrame( pFbxScene );
 	*outAnimDataList = m_AnimDataList;
+
+	// 余分なメモリの削除.
+	m_MeshClusterData.clear();
+	m_MeshClusterData.shrink_to_fit();
+	m_Skeletons.clear();
+	m_Skeletons.shrink_to_fit();
+
 	return S_OK;
 }
 
@@ -176,6 +187,8 @@ void CFbxAnimationLoader::LoadSkin( FbxMesh* pMesh, FBXMeshClusterData& meshClus
 		// ボーン名の取得.
 		meshClusterData.ClusterName.emplace_back( pNode->GetName() );
 	}
+	// 余分なメモリの削除.
+	meshClusterData.ClusterName.shrink_to_fit();
 }
 
 ////////////////////////////////////////////////////////////////.
@@ -292,6 +305,8 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 				animData.KeyFrameLinkMatrix[meshNo][i] = keyFrame;
 			}
 		}
+		// 余分なメモリの削除.
+		animData.KeyFrameLinkMatrix.shrink_to_fit();
 
 		// フレームリストを追加.
 		if( animData.KeyFrameLinkMatrix.empty() == false ){
@@ -301,6 +316,7 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 			}
 			animData.KeyList.back().emplace_back( animData.EndTime );
 		}
+		animData.KeyList.shrink_to_fit();
 
 		meshNo++;
 	}

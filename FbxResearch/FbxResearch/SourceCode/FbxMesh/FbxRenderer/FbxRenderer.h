@@ -79,6 +79,9 @@ public:
 		CFbxAnimationController* pAc = nullptr );
 
 private:
+	// アニメーションフレームの更新.
+	void AnimationFrameUpdate( CFbxModel& mdoel, CFbxAnimationController* pAc );
+
 	// アニメーション用の行列計算.
 	void AnimMatrixCalculation( 
 		CFbxModel& mdoel,
