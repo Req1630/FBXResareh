@@ -110,9 +110,10 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	//-----------------------------------.
 	// FbxSkeletonを取得.
 	int skeltonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
-	m_Skeletons.resize(skeltonNum);
+	m_Skeletons.resize( skeltonNum );
 	for( int i = 0; i < skeltonNum; i++ ){
 		m_Skeletons[i] = m_pFbxScene->GetSrcObject<FbxSkeleton>(i);
+		m_Skeletons[i]->GetNode()->GetAnimationEvaluator();
 	}
 
 	//-----------------------------------.
@@ -177,7 +178,7 @@ void CFbxAnimationLoader::LoadSkin( FbxMesh* pMesh, FBXMeshClusterData& meshClus
 	// ダウンキャストしてスキン情報を取得.
 	FbxSkin* pSkin = (FbxSkin*)pMesh->GetDeformer( 0, FbxDeformer::eSkin );
 	if( pSkin == nullptr ) return;
-
+	
 	// ボーンの数.
 	int boneCount = pSkin->GetClusterCount();
 	for( int boneIndex = 0; boneIndex < boneCount; boneIndex++ ){
@@ -278,12 +279,9 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 		for( auto& s : m_Skeletons ){
 			FbxNode* skeletonNode = s->GetNode();
 			// 追加したノードが見つからなければ終了.
-			//if( animSkelton.ClusterKey.find(skeletonNode->GetName()) == 
-			//	animSkelton.ClusterKey.end() ) continue;
-			if( std::find( 
-				animSkelton.ClusterName.begin(), 
-				animSkelton.ClusterName.end(), 
+			if( std::find( animSkelton.ClusterName.begin(), animSkelton.ClusterName.end(), 
 				skeletonNode->GetName() ) == animSkelton.ClusterName.end() ) continue;
+
 			int numOfBones = animSkelton.ClusterName.size();
 			if( numOfBones <= 0 ) continue;
 
