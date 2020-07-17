@@ -37,7 +37,7 @@ CMain::CMain()
 	, m_FbxGround		( nullptr )
 {
 	m_pDirectX11 = std::make_unique<CDirectX11>();
-	m_pFPS = std::make_unique<CFrameRate>( FPS );
+	m_pFPS = std::make_unique<CFrameRate>( 60 );
 	m_pCamera = std::make_unique<CCamera>();
 	m_pLight = std::make_unique<CLight>();
 	m_Sprite = std::make_unique<CSprite>();
@@ -107,11 +107,12 @@ HRESULT CMain::Load()
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
 		"Data\\Model\\sayaka_fbx\\sayaka_fbx.fbx",
+		"Data\\Model\\bomb\\bomb.fbx",
 	};
 	const char* boxModelName = "Data\\Model\\box.fbx";
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[7] );
 	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
 	//SAnimationDataList animDataList;
@@ -219,16 +220,16 @@ void CMain::Update()
 			m_FbxModel->SetPosition( objectPos );
 			m_FbxModel->SetRotation( objectRot );
 			m_FbxModel->SetScale( objectScale );
-			m_FbxModel->SetAnimSpeed( 0.00 );
+			m_FbxModel->SetAnimSpeed( 0.01 );
 			m_FbxRenderer->Render(
 				*m_FbxModel.get(),
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
+//		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
 		m_FbxBone->SetScale( boneBoxScale );
-		m_FbxBone->SetAnimSpeed( 0.01 );
+		m_FbxBone->SetAnimSpeed( 0.00 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),
 			*m_pCamera.get(),
@@ -300,13 +301,13 @@ void CMain::Update()
 		m_FbxModel->SetPosition( objectPos );
 		m_FbxModel->SetRotation( objectRot );
 		m_FbxModel->SetScale( objectScale );
-		m_FbxModel->SetAnimSpeed( 0.00 );
+		m_FbxModel->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
 			*m_pCamera.get(),
 			*m_pLight.get() );
 
-		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
+//		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
 		m_FbxBone->SetScale( boneBoxScale );
 		m_FbxBone->SetAnimSpeed( 0.01 );
@@ -360,10 +361,10 @@ void CMain::Loop()
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );
 		} else {
-			m_pFPS->Update();
+//			m_pFPS->Update();
 			Update();
 			// フレームレートの待機処理.
-			m_pFPS->Wait();
+//			m_pFPS->Wait();
 		}
 	}
 }

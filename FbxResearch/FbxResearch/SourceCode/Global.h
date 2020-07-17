@@ -24,7 +24,7 @@
 //=================================================
 const int WND_W = 1280;	// ウィンドウの幅.
 const int WND_H = 720;	// ウィンドウの高さ.
-const int FPS = 60;
+//const int FPS = 60;
 
 class CCamera;
 class CDX9SkinMesh;
