@@ -59,12 +59,11 @@ public:
 			for( int j = minIndex; j < maxIndex; j++ ){
 				if( KeyList[meshNo][j] <= time && time <= KeyList[meshNo][j+1] ){
 					double lenght = KeyList[meshNo][j+1] - KeyList[meshNo][j];
-					double ollLenght = (time - KeyList[meshNo][j]) / lenght;
-					FbxMatrix tmpMatrix1 = KeyFrameLinkMatrix[meshNo][i][KeyList[meshNo][j]];
-					FbxMatrix tmpMatrix2 = KeyFrameLinkMatrix[meshNo][i][KeyList[meshNo][j+1]];
-					*outMat = tmpMatrix2 - tmpMatrix1;
-					*outMat *= ollLenght;
-					*outMat += tmpMatrix1;
+					*outMat = 
+						KeyFrameLinkMatrix[meshNo][i][KeyList[meshNo][j+1]] - 
+						KeyFrameLinkMatrix[meshNo][i][KeyList[meshNo][j]];
+					*outMat *= (time - KeyList[meshNo][j]) / lenght;
+					*outMat += KeyFrameLinkMatrix[meshNo][i][KeyList[meshNo][j]];
 					break;
 				}
 			}

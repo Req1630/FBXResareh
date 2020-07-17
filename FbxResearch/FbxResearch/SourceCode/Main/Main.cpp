@@ -37,7 +37,7 @@ CMain::CMain()
 	, m_FbxGround		( nullptr )
 {
 	m_pDirectX11 = std::make_unique<CDirectX11>();
-	m_pFPS = std::make_unique<CFrameRate>( 60 );
+	m_pFPS = std::make_unique<CFrameRate>( static_cast<float>(FPS) );
 	m_pCamera = std::make_unique<CCamera>();
 	m_pLight = std::make_unique<CLight>();
 	m_Sprite = std::make_unique<CSprite>();
@@ -112,7 +112,7 @@ HRESULT CMain::Load()
 	const char* boxModelName = "Data\\Model\\box.fbx";
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[7] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[3] );
 	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
 	SAnimationDataList animDataList;
@@ -217,14 +217,14 @@ void CMain::Update()
 	{
 		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
 		for( int i = 0; i < objNum; i++ ){
-			m_FbxModel->SetPosition( objectPos );
-			m_FbxModel->SetRotation( objectRot );
-			m_FbxModel->SetScale( objectScale );
-			m_FbxModel->SetAnimSpeed( 0.01 );
-			m_FbxRenderer->Render(
-				*m_FbxModel.get(),
-				*m_pCamera.get(),
-				*m_pLight.get() );
+//			m_FbxModel->SetPosition( objectPos );
+//			m_FbxModel->SetRotation( objectRot );
+//			m_FbxModel->SetScale( objectScale );
+////			m_FbxModel->SetAnimSpeed( 0.001 );
+//			m_FbxRenderer->Render(
+//				*m_FbxModel.get(),
+//				*m_pCamera.get(),
+//				*m_pLight.get() );
 		}
 //		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
@@ -301,7 +301,7 @@ void CMain::Update()
 		m_FbxModel->SetPosition( objectPos );
 		m_FbxModel->SetRotation( objectRot );
 		m_FbxModel->SetScale( objectScale );
-		m_FbxModel->SetAnimSpeed( 0.01 );
+//		m_FbxModel->SetAnimSpeed( 0.001 );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
 			*m_pCamera.get(),
@@ -310,7 +310,7 @@ void CMain::Update()
 //		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 		m_FbxBone->SetRotation( objectRot );
 		m_FbxBone->SetScale( boneBoxScale );
-		m_FbxBone->SetAnimSpeed( 0.01 );
+//		m_FbxBone->SetAnimSpeed( 0.01 );
 		m_FbxRenderer->Render(
 			*m_FbxBone.get(),
 			*m_pCamera.get(),
@@ -331,7 +331,7 @@ void CMain::Update()
 			= { 0.3f, 0.3f, 0.3f, 0.9f };
 		ImGui::Begin( "Info", &isOpen );
 		
-		ImGui::Text( "FPS : %f", (float)m_pFPS->GetFrameTime() );
+//		ImGui::Text( "FPS : %f", (float)m_pFPS->GetFrameTime() );
 		ImGui::Text( "objNum : %d", objNum );
 
 		ImGui::End();
@@ -357,14 +357,15 @@ void CMain::Loop()
 
 	while( msg.message != WM_QUIT )
 	{
+		m_pFPS->Wait();
+
 		if( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE )){
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );
-		} else {
-//			m_pFPS->Update();
+		}
+		if( m_pFPS->Update() )
+		{
 			Update();
-			// フレームレートの待機処理.
-//			m_pFPS->Wait();
 		}
 	}
 }

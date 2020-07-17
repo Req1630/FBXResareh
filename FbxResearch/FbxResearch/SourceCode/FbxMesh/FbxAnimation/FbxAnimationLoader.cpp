@@ -206,10 +206,10 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 	int stackCount = pScene->GetSrcObjectCount<FbxAnimStack>();
 	m_AnimDataList.AnimList.clear();
 	m_AnimDataList.AnimList.resize( stackCount );
-	std::vector<SAnimationData>& anmDataList = m_AnimDataList.AnimList;
+	std::vector<SAnimationData>& animDataList = m_AnimDataList.AnimList;
 	// アニメーションの数分.
 	for( int i = 0; i < stackCount; i++ ){
-		SAnimationData& animData = anmDataList[i];
+		SAnimationData& animData = animDataList[i];
 		animData.FrameRate = framerate;	// フレームレートの設定.
 		FbxTimeSpan timeSpan;
 		// アニメーションデータ取得.
@@ -229,8 +229,8 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 
 		// 加算フレームの設定.
 		FbxTime frameTime;
-		frameTime.SetTime( 0, 0, 0, 1, 0, pScene->GetGlobalSettings().GetTimeMode() );
-		animData.AnimSpeed = frameTime.GetSecondDouble();
+		frameTime.SetTime( 0, 0, 0, 1, 0, timeMode );
+		animData.AnimSpeed = frameTime.GetSecondDouble() / ( 60.0 / framerate );
 
 		// 開始時間を取得.
 		animData.StartTime = timeSpan.GetStart().GetSecondDouble();
@@ -246,13 +246,13 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 
 	}
 	// アニメーションデータが正しいか確認.
-	for( size_t i = 0; i < anmDataList.size(); i++ ){
-		if( anmDataList[i].EndTime < 0.0 ){
+	for( size_t i = 0; i < animDataList.size(); i++ ){
+		if( animDataList[i].EndTime < 0.0 ){
 			// アニメーションの終了時間が 0 より少ないと、
 			// 明らかにおかしなデータなので、
 			// そのアニメーションデータを削除する.
-			anmDataList[i] = anmDataList.back();
-			anmDataList.pop_back();
+			animDataList[i] = animDataList.back();
+			animDataList.pop_back();
 			i--;
 		}
 	}
@@ -264,7 +264,7 @@ void CFbxAnimationLoader::GetAnimationFrame( FbxScene* pScene )
 void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, FbxTimeSpan& timeSpan, FbxNode* pNode )
 {
 	// アニメーションフレーム.
-	int totalFrame = (int)std::ceil(animData.AnimationTime * animData.FrameRate)+1;
+	int totalFrame = (int)std::ceil(animData.AnimationTime * animData.FrameRate);
 	// アニメーションのスタート時間.
 	double start = timeSpan.GetStart().GetSecondDouble();
 
@@ -288,7 +288,7 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 			std::map<double, FbxMatrix> keyFrame;
 
 			// フレームの数分.
-			for( int i = 0; i < totalFrame; i++ ){
+			for( int i = 0; i <= totalFrame; i++ ){
 				double keyTime = start + (i * (1.0f/animData.FrameRate));
 				FbxTime time;
 				time.SetSecondDouble( keyTime );
