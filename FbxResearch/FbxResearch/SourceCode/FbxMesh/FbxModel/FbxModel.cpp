@@ -1,6 +1,9 @@
 #include "FbxModel.h"
 #include "..\FbxAnimation\FbxAnimationController.h"
 
+#include <iostream>
+#include <fstream>
+
 CFbxModel::CFbxModel()
 	: m_MeshData	()
 	, m_Textures	()
@@ -64,22 +67,9 @@ void CFbxModel::SetAnimationData( const SAnimationDataList& animDataList )
 //////////////////////////////////////////////////////.
 // ボーン名データの作成.
 //////////////////////////////////////////////////////.
-void CFbxModel::BoneNameDataCreate()
+void CFbxModel::SetBoneNameData( std::map<std::string, std::pair<int, int>>& boneNumberList )
 {
-	int meshNo = 0;
-	int boneNo = 0;
-	for( auto& m : m_MeshData ){
-		boneNo = 0;
-		for( auto& s : m.Skin.BoneName ){
-			m_BoneNumberList.try_emplace( s, meshNo, boneNo );
-			boneNo++;
-		}
-		meshNo++;
-	}
-	// ボーン名の書き込み.
-	for( auto& b : m_BoneNumberList ){
-
-	}
+	m_BoneNumberList = boneNumberList;
 }
 
 //////////////////////////////////////////////////////.

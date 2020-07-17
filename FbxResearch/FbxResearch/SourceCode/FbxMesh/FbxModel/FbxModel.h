@@ -28,8 +28,8 @@ public:
 	CFbxAnimationController* GetPtrAC();
 	// アニメーションデータの設定.
 	void SetAnimationData( const SAnimationDataList& animDataList );
-	// ボーン名データの作成.
-	void BoneNameDataCreate();
+	// ボーン名データの取得.
+	void SetBoneNameData( std::map<std::string, std::pair<int, int>>& boneNumberList );
 
 	//-----------------------------------------.
 	//			パラメータ取得.

@@ -5,6 +5,8 @@
 
 #include <crtdbg.h>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <codecvt>
 
 CFbxModelLoader::CFbxModelLoader()
@@ -164,7 +166,8 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 		if( FAILED( CreateIndexBuffers( m ) )) return E_FAIL;
 		meshNo++;
 	}
-	pModelData->BoneNameDataCreate();
+	// ボーン名リストの作成.
+	CreateBoneNameList( pModelData, fileName );
 
 	//---------------------------------------------.
 	//	アニメーションの読み込み.
@@ -750,4 +753,49 @@ HRESULT CFbxModelLoader::CreateIndexBuffers( FBXMeshData& meshData )
 		return E_FAIL;
 	}
 	return S_OK;
+}
+
+//////////////////////////////////////////////////////////////////////.
+// ボーン名リストの作成.
+//////////////////////////////////////////////////////////////////////.
+void CFbxModelLoader::CreateBoneNameList( CFbxModel* pModelData, const char* fileName )
+{
+	int meshNo = 0;
+	int boneNo = 0;
+	std::map<std::string, std::pair<int, int>> boneList;
+	for( auto& m : pModelData->GetMeshData() ){
+		boneNo = 0;
+		for( auto& s : m.Skin.BoneName ){
+			// ボーン名と、メッシュ番号、ボーン番号を追加.
+			boneList.try_emplace( s, meshNo, boneNo );
+			boneNo++;
+		}
+		meshNo++;
+	}
+	pModelData->SetBoneNameData( boneList );
+	// ボーン名をテキストに書き込む.
+	WritingBoneNameList( boneList, fileName );
+}
+
+//////////////////////////////////////////////////////////////////////.
+// ボーンリストをテキストで書き込み.
+//////////////////////////////////////////////////////////////////////.
+void CFbxModelLoader::WritingBoneNameList( std::map<std::string, std::pair<int, int>>& boneList, const char* fileName )
+{
+	if( boneList.empty() == true ) return;
+	
+	std::string filePath = fileName;
+	// モデルのパスを使用し、拡張子を削除しとく.
+	int pos = filePath.find_last_of('.')+1;
+	filePath = filePath.substr( 0, pos-1 );
+	filePath += "_BoneList.txt";	// 追加でファイル名と、拡張子を追加.
+
+	// ファイルを開く.
+	std::fstream fileStream( filePath, std::ios::out );
+	if( fileStream.is_open() == false ) return;
+
+	for( auto& b : boneList ){
+		// ボーン名を書き込む.
+		fileStream << b.first << std::endl;
+	}
 }

@@ -95,14 +95,14 @@ HRESULT CMain::Load()
 {
 	const char* fileName[] =
 	{
-		"Data\\Model\\unitychan\\unitychan.fbx",
+		"Data\\Model\\unitychan\\unitychan_DAMAGED00.fbx",
 
 		"Data\\Model\\humanoid.fbx",
 		"Data\\Model\\grid\\grid1.fbx",
 		"Data\\Model\\UE_Animation\\Walk_02_Cheerful_Loop_IP.FBX",
 		"Data\\Model\\UE_Animation\\Walk_04_Texting_Loop_IP.FBX",
 		"Data\\Model\\Liz\\Model\\Liz_Model.fbx",
-		"Data\\Model\\Query\\Animations\\Query_Idle.fbx",
+		"Data\\Model\\Liz\\Animations\\Liz_Idle.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Jump.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Run.fbx",
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
@@ -115,8 +115,8 @@ HRESULT CMain::Load()
 	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[7] );
 	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
-	//SAnimationDataList animDataList;
-	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[6] );
+	SAnimationDataList animDataList;
+//	m_fbxAnimLoader->LoadAnim( &animDataList, fileName[0] );
 	//m_AC.AddAnimationData( animDataList );
 	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[7] );
 	//m_AC.AddAnimationData( animDataList );
