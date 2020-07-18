@@ -22,8 +22,8 @@ DirectX::XMMATRIX CLight::GetVP()
 		{ m_Position.x, m_Position.y, m_Position.z },		// カメラ座標.
 		{ m_vLookPosition.x, m_vLookPosition.y, m_vLookPosition.z },	// カメラ注視座標.
 		{ VIEW_UP_VECTOR.x, VIEW_UP_VECTOR.y, VIEW_UP_VECTOR.z } );	// カメラベクトル.
-
-	// プロジェクション(射影)変換.
+	
+	// プロジェクション(平行)変換.
 	m_ProjMatrix = DirectX::XMMatrixOrthographicLH(
 		m_ViewingAngle,				// 視野角.
 		SCREEN_ASPECT_RATIO,		// 画面アスペクト比.

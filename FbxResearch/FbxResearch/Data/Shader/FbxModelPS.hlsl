@@ -37,7 +37,7 @@ PS_OUTPUT PS_Main( VS_OUTPUT input )
 	output.Color = Color;
 //	output.Color = input.Normal;
 	output.Normal = input.Normal;
-	output.ZDepth = input.ZDepth;
+	output.ZDepth = input.ZDepth.z / input.ZDepth.w;
 	
 	return output;
 }

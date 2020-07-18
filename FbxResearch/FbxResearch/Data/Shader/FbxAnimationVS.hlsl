@@ -37,8 +37,7 @@ VS_OUTPUT VS_Main( VS_INPUT input )
 	float4 pos = mul(skin.Pos, g_W);
 	output.EyeDir = normalize( g_CameraPos - pos );
 	
-	output.ZDepth = mul(pos, g_LightWVP);
-	output.ZDepth = output.ZDepth.z / output.ZDepth.w;
+	output.ZDepth = mul(skin.Pos, g_LightWVP);
 	
 	output.LightDir = normalize( g_LightDir );
 	

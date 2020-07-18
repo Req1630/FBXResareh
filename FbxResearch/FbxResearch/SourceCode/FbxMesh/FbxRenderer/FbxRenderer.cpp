@@ -112,7 +112,7 @@ void CFbxRenderer::Render(
 			// world, View, Proj を転置して渡す.
 			cb.mWVP	= DirectX::XMMatrixTranspose( mWVP );
 			// ライトの wvp　を転置して渡す.
-			cb.mLightWVP = DirectX::XMMatrixTranspose( light.GetVP() );
+			cb.mLightWVP = DirectX::XMMatrixTranspose( mWorld*light.GetVP() );
 			// カメラの座標を渡す.
 			cb.CameraPos = { camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z, 0.0f };
 			// ライトの方向を渡す.

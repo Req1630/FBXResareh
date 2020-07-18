@@ -20,6 +20,8 @@
 #include "..\FbxMesh\FbxRenderer\FbxRenderer.h"
 #include "..\FbxMesh\FbxModel\FbxModel.h"
 
+#include "..\FbxMesh\ShadowMap\ShadowMap.h"
+
 LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 
 CMain::CMain()
@@ -32,6 +34,7 @@ CMain::CMain()
 	, m_FbxRenderer		( nullptr )
 	, m_FbxModelLoader	( nullptr )
 	, m_fbxAnimLoader	( nullptr )
+	, m_ShadowMap		( nullptr )
 	, m_FbxModel		( nullptr )
 	, m_FbxBone			( nullptr )
 	, m_FbxGround		( nullptr )
@@ -45,6 +48,8 @@ CMain::CMain()
 	m_FbxRenderer = std::make_unique<CFbxRenderer>();
 	m_FbxModelLoader = std::make_unique<CFbxModelLoader>();
 	m_fbxAnimLoader = std::make_unique<CFbxAnimationLoader>();
+	m_ShadowMap = std::make_unique<CShadowMap>();
+
 	m_FbxModel = std::make_shared<CFbxModel>();
 	m_FbxBone = std::make_shared<CFbxModel>();
 	m_FbxGround = std::make_shared<CFbxModel>();
@@ -70,6 +75,7 @@ HRESULT CMain::Init()
 	m_FbxModelLoader->Create( m_pDirectX11->GetDevice() );
 	m_fbxAnimLoader->Create();
 	m_Sprite->Init( m_pDirectX11->GetContext() );
+	m_ShadowMap->Create( m_pDirectX11->GetContext() );
 
 	return S_OK;
 }
@@ -79,6 +85,7 @@ HRESULT CMain::Init()
 //====================================.
 void CMain::Release()
 {
+	m_ShadowMap->Destroy();
 	m_fbxAnimLoader->Destroy();
 	m_FbxModelLoader->Destroy();
 	m_FbxRenderer->Destroy();
@@ -112,7 +119,7 @@ HRESULT CMain::Load()
 	const char* boxModelName = "Data\\Model\\box.fbx";
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[3] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
 	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
 	SAnimationDataList animDataList;
@@ -144,7 +151,7 @@ void CMain::Update()
 	// ÉJÉÅÉâêßå‰.
 	{
 		static DirectX::XMFLOAT3 cameraPos = { 0.0f, 6.0f, 15.0f };
-		static DirectX::XMFLOAT3 lightPos = { 0.0f, 6.0f, 15.0f };
+		static DirectX::XMFLOAT3 lightPos = { 0.0f, 10.0f, 15.0f };
 		if( GetAsyncKeyState('C') & 0x8000 ){
 			if( GetAsyncKeyState(VK_NUMPAD8) & 0x8000 ) cameraPos.y += 0.1f;
 			if( GetAsyncKeyState(VK_NUMPAD2) & 0x8000 ) cameraPos.y -= 0.1f;
@@ -217,23 +224,23 @@ void CMain::Update()
 	{
 		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
 		for( int i = 0; i < objNum; i++ ){
-//			m_FbxModel->SetPosition( objectPos );
-//			m_FbxModel->SetRotation( objectRot );
-//			m_FbxModel->SetScale( objectScale );
-////			m_FbxModel->SetAnimSpeed( 0.001 );
-//			m_FbxRenderer->Render(
-//				*m_FbxModel.get(),
-//				*m_pCamera.get(),
-//				*m_pLight.get() );
+			m_FbxModel->SetPosition( objectPos );
+			m_FbxModel->SetRotation( objectRot );
+			m_FbxModel->SetScale( objectScale );
+//			m_FbxModel->SetAnimSpeed( 0.001 );
+			m_FbxRenderer->Render(
+				*m_FbxModel.get(),
+				*m_pCamera.get(),
+				*m_pLight.get() );
 		}
 //		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
-		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( boneBoxScale );
-		m_FbxBone->SetAnimSpeed( 0.00 );
-		m_FbxRenderer->Render(
-			*m_FbxBone.get(),
-			*m_pCamera.get(),
-			*m_pLight.get() );
+//		m_FbxBone->SetRotation( objectRot );
+//		m_FbxBone->SetScale( boneBoxScale );
+//		m_FbxBone->SetAnimSpeed( 0.00 );
+//		m_FbxRenderer->Render(
+//			*m_FbxBone.get(),
+//			*m_pCamera.get(),
+//			*m_pLight.get() );
 	}
 
 	static DirectX::XMFLOAT3 spritePos = { 0.0f, WND_H*0.3f*0.0f, 0.0f };
@@ -308,13 +315,13 @@ void CMain::Update()
 			*m_pLight.get() );
 
 //		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
-		m_FbxBone->SetRotation( objectRot );
-		m_FbxBone->SetScale( boneBoxScale );
+//		m_FbxBone->SetRotation( objectRot );
+//		m_FbxBone->SetScale( boneBoxScale );
 //		m_FbxBone->SetAnimSpeed( 0.01 );
-		m_FbxRenderer->Render(
-			*m_FbxBone.get(),
-			*m_pCamera.get(),
-			*m_pLight.get() );
+//		m_FbxRenderer->Render(
+//			*m_FbxBone.get(),
+//			*m_pCamera.get(),
+//			*m_pLight.get() );
 	}
 
 	// ImGuiï\é¶.
