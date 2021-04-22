@@ -57,7 +57,7 @@ private:
 private:
 	HWND m_hWnd;
 	std::unique_ptr<CDirectX11>	m_pDirectX11;	// DirectX11.
-	std::unique_ptr<CFrameRate>	m_pFPS;
+	std::unique_ptr<CFrameRate>	m_pFrameRate;
 	std::unique_ptr<CCamera>	m_pCamera;
 	std::unique_ptr<CLight>		m_pLight;
 	std::unique_ptr<CSprite>	m_Sprite;

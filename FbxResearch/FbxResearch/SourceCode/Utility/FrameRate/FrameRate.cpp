@@ -2,33 +2,56 @@
 #include <thread>
 #include <chrono>
 
-CFrameRate::CFrameRate( float fps )
-	: m_Rate		( 1000.0f / fps )
-	, m_SsyncOld	( 0 )
-	, m_SyncNow		( 0 )
+#pragma comment( lib, "winmm.lib" )
+
+CFrameRate::CFrameRate()
+	: CFrameRate	( DEFAULT_FRAME_RATE )
 {
-	m_SsyncOld = timeGetTime();
-	// 時間処理のため、最小単位を1ミリ秒に変更.
-	timeBeginPeriod( 1 );
+}
+
+CFrameRate::CFrameRate( const double& fps )
+	: FRAME_RATE		( fps )
+	, MIN_FRAME_TIME	( 1.0 / fps )
+	, m_FPS				( fps )
+	, m_FrameTime		( 0.0 )
+	, m_StartTime		()
+	, m_NowTime			()
+	, m_FreqTime		()
+{
+	QueryPerformanceFrequency( &m_FreqTime );
+	QueryPerformanceCounter( &m_StartTime );
 }
 
 CFrameRate::~CFrameRate()
 {
 }
 
-bool CFrameRate::Update()
+// 待機関数.
+bool CFrameRate::Wait()
 {
-	if( m_SyncNow - m_SsyncOld < m_Rate )
-	{
-		return false;
+	// 現在の時間を取得.
+	QueryPerformanceCounter( &m_NowTime );
+	// (今の時間 - 前フレームの時間) / 周波数 = 経過時間(秒単位).
+	m_FrameTime =
+		(static_cast<double>(m_NowTime.QuadPart) - static_cast<double>(m_StartTime.QuadPart)) / 
+		static_cast<double>(m_FreqTime.QuadPart);
+
+	// 処理時間に余裕がある場合はその分待機.
+	if( m_FrameTime < MIN_FRAME_TIME ){
+		// 待機時間を計算.
+		DWORD sleepTime = static_cast<DWORD>((MIN_FRAME_TIME - m_FrameTime) * 1000.0);
+
+		timeBeginPeriod(1);
+		Sleep( sleepTime );
+		timeEndPeriod(1); 
+
+		return true;
 	}
-	m_SsyncOld = m_SyncNow;	// 現在時間に置き換え.
 
-	return true;
-}
+	if( m_FrameTime > 0.0 ) m_FPS = (m_FPS*0.99) + (0.01/m_FrameTime);
+	if( m_FrameTime > MAX_FRAME_TIME ) m_FrameTime = MAX_FRAME_TIME;
 
-void CFrameRate::Wait()
-{
-	Sleep( 1 );
-	m_SyncNow = timeGetTime();	//現在の時間を取得.
+	m_StartTime = m_NowTime;
+
+	return false;
 }

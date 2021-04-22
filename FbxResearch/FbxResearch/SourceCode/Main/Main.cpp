@@ -27,7 +27,7 @@ LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 CMain::CMain()
 	: m_hWnd			( nullptr )
 	, m_pDirectX11		( nullptr )
-	, m_pFPS			( nullptr )
+	, m_pFrameRate		( nullptr )
 	, m_pCamera			( nullptr )
 	, m_pLight			( nullptr )
 	, m_Sprite			( nullptr )
@@ -40,7 +40,7 @@ CMain::CMain()
 	, m_FbxGround		( nullptr )
 {
 	m_pDirectX11 = std::make_unique<CDirectX11>();
-	m_pFPS = std::make_unique<CFrameRate>( static_cast<float>(FPS) );
+	m_pFrameRate = std::make_unique<CFrameRate>( static_cast<float>(FPS) );
 	m_pCamera = std::make_unique<CCamera>();
 	m_pLight = std::make_unique<CLight>();
 	m_Sprite = std::make_unique<CSprite>();
@@ -136,6 +136,9 @@ HRESULT CMain::Load()
 //====================================.
 void CMain::Update()
 {
+	// デルタタイムの取得.
+	const float	deltaTime = static_cast<float>(m_pFrameRate->GetDeltaTime());
+
 	// 画面のクリア.
 	m_pDirectX11->ClearBackBuffer();
 
@@ -227,7 +230,7 @@ void CMain::Update()
 			m_FbxModel->SetPosition( objectPos );
 			m_FbxModel->SetRotation( objectRot );
 			m_FbxModel->SetScale( objectScale );
-//			m_FbxModel->SetAnimSpeed( 0.001 );
+			m_FbxModel->SetAnimSpeed( deltaTime );
 			m_FbxRenderer->Render(
 				*m_FbxModel.get(),
 				*m_pCamera.get(),
@@ -302,7 +305,7 @@ void CMain::Update()
 		m_FbxModel->SetPosition( objectPos );
 		m_FbxModel->SetRotation( objectRot );
 		m_FbxModel->SetScale( objectScale );
-//		m_FbxModel->SetAnimSpeed( 0.001 );
+		m_FbxModel->SetAnimSpeed( deltaTime );
 		m_FbxRenderer->Render(
 			*m_FbxModel.get(),
 			*m_pCamera.get(),
@@ -332,7 +335,8 @@ void CMain::Update()
 			= { 0.3f, 0.3f, 0.3f, 0.9f };
 		ImGui::Begin( "Info", &isOpen );
 		
-//		ImGui::Text( "FPS : %f", (float)m_pFPS->GetFrameTime() );
+		ImGui::Text( "FPS : %f", (float)m_pFrameRate->GetFPS() );
+		ImGui::Text( "DeltaTime : %f", (float)m_pFrameRate->GetDeltaTime() );
 		ImGui::Text( "objNum : %d", objNum );
 
 		ImGui::End();
@@ -358,14 +362,12 @@ void CMain::Loop()
 
 	while( msg.message != WM_QUIT )
 	{
-		m_pFPS->Wait();
-
 		if( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE )){
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );
-		}
-		if( m_pFPS->Update() )
-		{
+		} else {
+			// フレームレートの待機処理.
+			if( m_pFrameRate->Wait() == true ) continue;
 			Update();
 		}
 	}
