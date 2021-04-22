@@ -233,14 +233,6 @@ void CMain::Update()
 				*m_pCamera.get(),
 				*m_pLight.get() );
 		}
-//		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
-//		m_FbxBone->SetRotation( objectRot );
-//		m_FbxBone->SetScale( boneBoxScale );
-//		m_FbxBone->SetAnimSpeed( 0.00 );
-//		m_FbxRenderer->Render(
-//			*m_FbxBone.get(),
-//			*m_pCamera.get(),
-//			*m_pLight.get() );
 	}
 
 	static DirectX::XMFLOAT3 spritePos = { 0.0f, WND_H*0.3f*0.0f, 0.0f };
@@ -281,6 +273,8 @@ void CMain::Update()
 	}
 	m_pDirectX11->SetBackBuffer();
 
+	// GBuffer‚Ì’Ç‰Á.
+#if 0
 	m_Sprite->SetPosition( spritePos );
 	m_Sprite->SetScale( { 0.3f, 0.3f, 0.3f } );
 	m_Sprite->Render( m_pDirectX11->GetColorMap() );
@@ -296,7 +290,7 @@ void CMain::Update()
 	m_Sprite->SetPosition( spritePos4 );
 	m_Sprite->SetScale( { 0.4f, 0.4f, 0.4f } );
 	m_Sprite->Render( m_pDirectX11->GetGBuffer() );
-
+#endif
 	{
 		m_FbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
 		m_FbxGround->SetScale( 100.0f );
