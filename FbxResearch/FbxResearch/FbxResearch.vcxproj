@@ -146,7 +146,6 @@
     <ClCompile Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxModel\FbxModel.cpp" />
     <ClCompile Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.cpp" />
-    <ClCompile Include="SourceCode\FbxMesh\ShadowMap\ShadowMap.cpp" />
     <ClCompile Include="SourceCode\ImGui\imgui.cpp" />
     <ClCompile Include="SourceCode\ImGui\ImGuiManager\ImGuiManager.cpp" />
     <ClCompile Include="SourceCode\ImGui\imgui_demo.cpp" />
@@ -175,7 +174,6 @@
     <ClInclude Include="SourceCode\FbxMesh\FbxModelLoader\FbxModelLoader.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxModel\FbxModel.h" />
     <ClInclude Include="SourceCode\FbxMesh\FbxRenderer\FbxRenderer.h" />
-    <ClInclude Include="SourceCode\FbxMesh\ShadowMap\ShadowMap.h" />
     <ClInclude Include="SourceCode\Global.h" />
     <ClInclude Include="SourceCode\ImGui\imconfig.h" />
     <ClInclude Include="SourceCode\ImGui\imgui.h" />

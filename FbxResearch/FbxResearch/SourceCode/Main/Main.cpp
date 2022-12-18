@@ -22,8 +22,6 @@
 #include "..\FbxMesh\FbxRenderer\FbxRenderer.h"
 #include "..\FbxMesh\FbxModel\FbxModel.h"
 
-#include "..\FbxMesh\ShadowMap\ShadowMap.h"
-
 LRESULT CALLBACK WndProc( HWND, UINT, WPARAM, LPARAM );
 
 CMain::CMain()
