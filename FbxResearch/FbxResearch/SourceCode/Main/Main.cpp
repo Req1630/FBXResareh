@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <windows.h>
+
 #include "..\Direct11\D3DX11.h"
 #include "..\Global.h"
 #include "..\Utility\FileManager\FileManager.h"
@@ -34,7 +36,6 @@ CMain::CMain()
 	, m_FbxRenderer		( nullptr )
 	, m_FbxModelLoader	( nullptr )
 	, m_fbxAnimLoader	( nullptr )
-	, m_ShadowMap		( nullptr )
 	, m_FbxModel		( nullptr )
 	, m_FbxBone			( nullptr )
 	, m_FbxGround		( nullptr )
@@ -48,7 +49,6 @@ CMain::CMain()
 	m_FbxRenderer = std::make_unique<CFbxRenderer>();
 	m_FbxModelLoader = std::make_unique<CFbxModelLoader>();
 	m_fbxAnimLoader = std::make_unique<CFbxAnimationLoader>();
-	m_ShadowMap = std::make_unique<CShadowMap>();
 
 	m_FbxModel = std::make_shared<CFbxModel>();
 	m_FbxBone = std::make_shared<CFbxModel>();
@@ -75,7 +75,6 @@ HRESULT CMain::Init()
 	m_FbxModelLoader->Create( m_pDirectX11->GetDevice() );
 	m_fbxAnimLoader->Create();
 	m_Sprite->Init( m_pDirectX11->GetContext() );
-	m_ShadowMap->Create( m_pDirectX11->GetContext() );
 
 	return S_OK;
 }
@@ -85,7 +84,6 @@ HRESULT CMain::Init()
 //====================================.
 void CMain::Release()
 {
-	m_ShadowMap->Destroy();
 	m_fbxAnimLoader->Destroy();
 	m_FbxModelLoader->Destroy();
 	m_FbxRenderer->Destroy();
@@ -115,18 +113,19 @@ HRESULT CMain::Load()
 		"Data\\Model\\Liz\\Animations\\Liz_Walk.fbx",
 		"Data\\Model\\sayaka_fbx\\sayaka_fbx.fbx",
 		"Data\\Model\\bomb\\bomb.fbx",
+		"Data\\Model\\JumpingDown\\JumpingDown.fbx",
 	};
 	const char* boxModelName = "Data\\Model\\box.fbx";
 	
 	m_FbxModelLoader->LoadModel( m_FbxGround.get(), fileName[2] );
-	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[6] );
+	m_FbxModelLoader->LoadModel( m_FbxModel.get(), fileName[12] );
 	m_FbxModelLoader->LoadModel( m_FbxBone.get(), boxModelName );
 
-	SAnimationDataList animDataList;
-//	m_fbxAnimLoader->LoadAnim( &animDataList, fileName[0] );
-	//m_AC.AddAnimationData( animDataList );
-	//m_fbxAnimLoader->LoadAnim( &animDataList, fileName[7] );
-	//m_AC.AddAnimationData( animDataList );
+//	SAnimationDataList animDataList;
+//	m_fbxAnimLoader->LoadAnim( &animDataList, fileName[8] );
+//	m_AC.AddAnimationData( animDataList );
+//	m_fbxAnimLoader->LoadAnim( &animDataList, fileName[7] );
+//	m_AC.AddAnimationData( animDataList );
 
 	return S_OK;
 }
@@ -136,6 +135,9 @@ HRESULT CMain::Load()
 //====================================.
 void CMain::Update()
 {
+	LARGE_INTEGER start, end;
+	QueryPerformanceCounter(&start);
+
 	// デルタタイムの取得.
 	const float	deltaTime = static_cast<float>(m_pFrameRate->GetDeltaTime());
 
@@ -178,20 +180,9 @@ void CMain::Update()
 		m_pLight->SetLookPosition( { 0.0f, 0.0f, 0.0f } );
 	}
 
-	// 地面の表示.
-	{
-		m_FbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
-		m_FbxGround->SetScale( 100.0f );
-		m_FbxRenderer->Render(
-			*m_FbxGround.get(),
-			*m_pCamera.get(),
-			*m_pLight.get() );
-	}
-
 	if( GetAsyncKeyState('A') & 0x0001 ){
 		m_AC.ChangeNextAnimation();
 	}
-	
 
 	// オブジェクト操作.
 	{
@@ -222,21 +213,7 @@ void CMain::Update()
 	}
 
 	static int objNum = 1;
-
-	// 描画クラスとモデルクラスを別々の場合の描画.
-	{
-		if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
-		for( int i = 0; i < objNum; i++ ){
-			m_FbxModel->SetPosition( objectPos );
-			m_FbxModel->SetRotation( objectRot );
-			m_FbxModel->SetScale( objectScale );
-			m_FbxModel->SetAnimSpeed( deltaTime );
-			m_FbxRenderer->Render(
-				*m_FbxModel.get(),
-				*m_pCamera.get(),
-				*m_pLight.get() );
-		}
-	}
+	if( GetAsyncKeyState('Q') & 0x0001 ) objNum++;
 
 	static DirectX::XMFLOAT3 spritePos = { 0.0f, WND_H*0.3f*0.0f, 0.0f };
 	if( GetAsyncKeyState('T') & 0x8000 ){
@@ -295,21 +272,21 @@ void CMain::Update()
 	m_Sprite->Render( m_pDirectX11->GetGBuffer() );
 #endif
 	{
-		m_FbxGround->SetPosition( {0.0f, -1.0f, 0.0f} );
-		m_FbxGround->SetScale( 100.0f );
-		m_FbxRenderer->Render(
-			*m_FbxGround.get(),
-			*m_pCamera.get(),
-			*m_pLight.get() );
+		{
+			for( int i = 0; i < objNum; i++ ){
+				m_FbxModel->SetPosition( objectPos );
+				m_FbxModel->SetRotation( objectRot );
+				m_FbxModel->SetScale( objectScale );
+				m_FbxModel->SetAnimSpeed( deltaTime );
+				m_FbxRenderer->Render(
+					*m_FbxModel.get(),
+					*m_pCamera.get(),
+					*m_pLight.get());
+//					&m_AC);
+			}
+			
+		}
 
-		m_FbxModel->SetPosition( objectPos );
-		m_FbxModel->SetRotation( objectRot );
-		m_FbxModel->SetScale( objectScale );
-		m_FbxModel->SetAnimSpeed( deltaTime );
-		m_FbxRenderer->Render(
-			*m_FbxModel.get(),
-			*m_pCamera.get(),
-			*m_pLight.get() );
 
 //		m_FbxBone->SetPosition( m_FbxModel->GetBonePosition( boneName ) );
 //		m_FbxBone->SetRotation( objectRot );
@@ -321,10 +298,12 @@ void CMain::Update()
 //			*m_pLight.get() );
 	}
 
+	
+
 	// ImGui表示.
 	{
 		ImGui::SetNextWindowSize( 
-			{ 200.0f, 100.0f }, 
+			{ 200.0f, 500.0f }, 
 			ImGuiCond_::ImGuiCond_Once );
 		ImGui::SetNextWindowPos( 
 			{ 0.0f, 0.0f }, 
@@ -338,6 +317,9 @@ void CMain::Update()
 		ImGui::Text( "FPS : %f", (float)m_pFrameRate->GetFPS() );
 		ImGui::Text( "DeltaTime : %f", (float)m_pFrameRate->GetDeltaTime() );
 		ImGui::Text( "objNum : %d", objNum );
+
+		QueryPerformanceCounter(&end);
+		ImGui::Text( "main : %d", (end.QuadPart-start.QuadPart) );
 
 		ImGui::End();
 
@@ -391,7 +373,7 @@ HRESULT CMain::InitWindow( HINSTANCE hInstance )
 	wc.hIcon			= LoadIcon( nullptr, IDI_APPLICATION );
 	wc.hCursor			= LoadCursor( nullptr, IDC_ARROW );
 	wc.hbrBackground	= (HBRUSH)GetStockObject( LTGRAY_BRUSH );
-	wc.lpszClassName	= "FbxResearch";
+	wc.lpszClassName	= TEXT("FbxResearch");
 	wc.hIconSm			= LoadIcon( nullptr, IDI_APPLICATION );
 
 	// ウィンドウクラスをWindowsに登録.
@@ -407,8 +389,8 @@ HRESULT CMain::InitWindow( HINSTANCE hInstance )
 	dwStyle		= WS_OVERLAPPEDWINDOW;
 
 	if( AdjustWindowRect( &rect, dwStyle, FALSE ) == 0 ){
-		MessageBox( nullptr, "ウィンドウ領域の調整に失敗",
-			"エラーメッセージ", MB_OK );
+		MessageBox( nullptr, TEXT("ウィンドウ領域の調整に失敗"),
+			TEXT("エラーメッセージ"), MB_OK );
 		return E_FAIL;
 	}
 	RECT deskRect = {};	// 画面サイズ.
@@ -420,8 +402,8 @@ HRESULT CMain::InitWindow( HINSTANCE hInstance )
 
 	// ウィンドウの作成.
 	m_hWnd = CreateWindow(
-		"FbxResearch",			// アプリ名.
-		"Fbx",					// ウィンドウタイトル.
+		TEXT("FbxResearch"),	// アプリ名.
+		TEXT("Fbx"),			// ウィンドウタイトル.
 		WS_OVERLAPPEDWINDOW,	// ウィンドウ種別(普通).
 		pos_x, pos_y,			// 表示位置x,y座標.
 		rect.right - rect.left,	// ウィンドウ幅.

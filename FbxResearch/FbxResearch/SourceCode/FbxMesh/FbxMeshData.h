@@ -58,8 +58,6 @@ struct FBXMeshData
 	SkinData			Skin;				// スキン情報.
 
 	int					PolygonVertexCount;	// ポリゴン頂点インデックス数.
-	std::string			UVSetName;			// UVの名前.
-	int					UVSetCount;			// UVの数.
 
 	FBXMeshData()
 		: Material				()
@@ -68,8 +66,6 @@ struct FBXMeshData
 		, pVertexBuffer			( nullptr )
 		, pIndexBuffer			( nullptr )
 		, PolygonVertexCount	( 0 )
-		, UVSetName				()
-		, UVSetCount			( 0 )
 	{}
 	// 解放処理.
 	void Release()

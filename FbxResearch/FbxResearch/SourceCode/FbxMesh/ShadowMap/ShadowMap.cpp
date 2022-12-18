@@ -103,8 +103,8 @@ HRESULT CShadowMap::CreateBuffer()
 	//--------------------------------------.
 	if( FAILED( CreateConstantBuffer( 
 		sizeof(CBUFFER_PER_MESH), &m_pCBufferPerMesh ) )){
-		_ASSERT_EXPR( false, "メッシュ毎の定数バッファ作成失敗" );
-		MessageBox( nullptr, "メッシュ毎の定数バッファ作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("メッシュ毎の定数バッファ作成失敗") );
+		MessageBox( nullptr, TEXT("メッシュ毎の定数バッファ作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
@@ -114,10 +114,10 @@ HRESULT CShadowMap::CreateBuffer()
 HRESULT CShadowMap::CreateConstantBuffer( const size_t& byte, ID3D11Buffer** buffer )
 {
 	D3D11_BUFFER_DESC cb;
-	cb.ByteWidth	= byte;
-	cb.Usage		= D3D11_USAGE_DYNAMIC;
-	cb.BindFlags	= D3D11_BIND_CONSTANT_BUFFER;
-	cb.MiscFlags	= 0;
+	cb.ByteWidth			= (UINT)byte;
+	cb.Usage				= D3D11_USAGE_DYNAMIC;
+	cb.BindFlags			= D3D11_BIND_CONSTANT_BUFFER;
+	cb.MiscFlags			= 0;
 	cb.CPUAccessFlags		= D3D11_CPU_ACCESS_WRITE;
 	cb.StructureByteStride	= 0;
 	if( FAILED( m_pDevice11->CreateBuffer( 
@@ -162,7 +162,7 @@ HRESULT CShadowMap::CreateShader()
 			msg.resize( pErrerBlog->GetBufferSize() );
 			std::copy_n(static_cast<char*>(pErrerBlog->GetBufferPointer()), pErrerBlog->GetBufferSize(), msg.begin());
 			_ASSERT_EXPR( false, msg.c_str() );
-			MessageBox( nullptr, msg.c_str(), "Warning", MB_OK );
+			MessageBoxA( nullptr, msg.c_str(), "Warning", MB_OK );
 			return E_FAIL;
 		}
 		return S_OK;
@@ -179,8 +179,8 @@ HRESULT CShadowMap::CreateShader()
 			pCompileVS->GetBufferSize(),	// 頂点シェーダーのサイズ.
 			nullptr,						// "動的シェーダーリンク"を使用しないのでnull.
 			&m_pVertexShader ))){			// (out)頂点シェーダー.
-		_ASSERT_EXPR( false, "頂点シェーダー作成失敗" );
-		MessageBox( nullptr, "頂点シェーダー作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("頂点シェーダー作成失敗") );
+		MessageBox( nullptr, TEXT("頂点シェーダー作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	//-----------------------------------------.
@@ -195,8 +195,8 @@ HRESULT CShadowMap::CreateShader()
 			pCompilePS->GetBufferSize(),	// ピクセルシェーダーのサイズ.
 			nullptr,						// "動的シェーダーリンク"を使用しないのでnull.
 			&m_pPixelShader ))){			// (out)ピクセルシェーダー.
-		_ASSERT_EXPR( false, "ピクセルシェーダー作成失敗" );
-		MessageBox( nullptr, "ピクセルシェーダー作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("ピクセルシェーダー作成失敗") );
+		MessageBox( nullptr, TEXT("ピクセルシェーダー作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	//-----------------------------------------.
@@ -219,8 +219,8 @@ HRESULT CShadowMap::CreateShader()
 			pCompileVS->GetBufferPointer(),
 			pCompileVS->GetBufferSize(),
 			&m_pVertexLayout ))){
-		_ASSERT_EXPR( false, "頂点レイアウト作成失敗" );
-		MessageBox( nullptr, "頂点レイアウト作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("頂点レイアウト作成失敗") );
+		MessageBox( nullptr, TEXT("頂点レイアウト作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 

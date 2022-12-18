@@ -45,7 +45,9 @@ private:
 	//-----------------------------------------.
 
 	// マテリアル取得.
-	void GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char* fileName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures );
+	void GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char* fileName, CFbxModel* pModelData );
+	// マテリアル用テクスチャの読み込み.
+	HRESULT LoadMaterialTexture( FBXMeshData& mesh, FbxSurfaceMaterial* pMat, const char* materialTypeName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures, const char* fileName );
 	// テクスチャの読み込み.
 	HRESULT LoadTexture( FbxFileTexture* texture, const char* fileName, const char* keyName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures );
 
@@ -98,7 +100,6 @@ private:
 	*			FBX SDK.
 	***************************************/
 	FbxManager* m_pFbxManager;	// FBXマネージャー.
-	FbxScene*	m_pFbxScene;	// FBXシーンオブジェクト.
 	std::vector<FBXMeshClusterData>	m_MeshClusterData;	// メッシュのクラスター情報.
 	std::vector<FbxSkeleton*>		m_Skeletons;		// スケルトン情報.
 };
