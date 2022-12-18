@@ -162,8 +162,8 @@ HRESULT CDirectX11::InitDevice11()
 		if( FAILED(createDevice(D3D_DRIVER_TYPE_WARP)) ){
 			if( FAILED(createDevice(D3D_DRIVER_TYPE_REFERENCE)) ){
 				MessageBox( nullptr,
-					"デバイスとスワップチェーン作成失敗",
-					"Error", MB_OK );
+					TEXT("デバイスとスワップチェーン作成失敗"),
+					TEXT("Error"), MB_OK );
 				return E_FAIL;
 			}
 		}

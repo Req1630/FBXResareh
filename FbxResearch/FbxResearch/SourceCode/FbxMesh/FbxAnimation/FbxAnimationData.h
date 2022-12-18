@@ -48,6 +48,7 @@ public:
 	// キーフレーム行列の取得.
 	bool GetFrameLinkMatrix( const int& meshNo, const int& i, const double& time, FbxMatrix* outMatrix )
 	{
+		if( meshNo >= (int)KeyFrameLinkMatrix.size() ) return false;
 		if( i >= (int)KeyFrameLinkMatrix[meshNo].size() ) return false;
 		// フレームの数.
 		int frameSize = static_cast<int>(KeyList[meshNo].size())-1;

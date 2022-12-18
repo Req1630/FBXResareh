@@ -23,7 +23,8 @@ public:
 	// メッシュデータのリサイズ.
 	void ReSizeMeshData( const int& size );
 	// テクスチャの取得.
-	std::unordered_map<std::string, ID3D11ShaderResourceView*>& GetTextures();
+	std::unordered_map<std::string, ID3D11ShaderResourceView*>& GetDiffuseTextures();
+
 	// アニメーションコントローラーの取得.
 	CFbxAnimationController* GetPtrAC();
 	// アニメーションデータの設定.
@@ -69,7 +70,7 @@ private:
 	*			Fbxモデル系.
 	***************************************/
 	std::vector<FBXMeshData> m_MeshData;	// メッシュデータ.
-	std::unordered_map<std::string, ID3D11ShaderResourceView*> m_Textures;	// テクスチャリスト.
+	std::unordered_map<std::string, ID3D11ShaderResourceView*> m_DiffuseTextures;	// テクスチャリスト.
 	CFbxAnimationController* m_pAc;			// アニメーションコントローラー.
 	std::map<std::string, std::pair<int, int>> m_BoneNumberList;
 

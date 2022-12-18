@@ -5,12 +5,12 @@
 #include <fstream>
 
 CFbxModel::CFbxModel()
-	: m_MeshData	()
-	, m_Textures	()
-	, m_pAc			( nullptr )
-	, m_Position	( 0.0f, 0.0f, 0.0f )
-	, m_Rotation	( 0.0f, 0.0f, 0.0f )
-	, m_Scale		( 1.0f, 1.0f, 1.0f )
+	: m_MeshData		()
+	, m_DiffuseTextures	()
+	, m_pAc				( nullptr )
+	, m_Position		( 0.0f, 0.0f, 0.0f )
+	, m_Rotation		( 0.0f, 0.0f, 0.0f )
+	, m_Scale			( 1.0f, 1.0f, 1.0f )
 {
 }
 
@@ -18,7 +18,7 @@ CFbxModel::~CFbxModel()
 {
 	SAFE_DELETE( m_pAc );
 	for( auto& m : m_MeshData ) m.Release();
-	for( auto& t : m_Textures ) SAFE_RELEASE( t.second )
+	for( auto& t : m_DiffuseTextures ) SAFE_RELEASE( t.second )
 }
 
 //////////////////////////////////////////////////////.
@@ -42,9 +42,9 @@ void CFbxModel::ReSizeMeshData( const int& size )
 // テクスチャの取得.
 //////////////////////////////////////////////////////.
 std::unordered_map<std::string, ID3D11ShaderResourceView*>& 
-CFbxModel::GetTextures()
+CFbxModel::GetDiffuseTextures()
 { 
-	return m_Textures; 
+	return m_DiffuseTextures; 
 }
 
 //////////////////////////////////////////////////////.
@@ -150,20 +150,20 @@ DirectX::XMMATRIX CFbxModel::GetBoneMatrix( const char* boneName, CFbxAnimationC
 		meshNo = m_BoneNumberList.at(boneName).first;
 		boneNo = m_BoneNumberList.at(boneName).second;
 	} catch( std::out_of_range& ) {
-		_ASSERT_EXPR( false, "指定したボーン名がありません" );
-		MessageBox( nullptr, "指定したボーン名がありません", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("指定したボーン名がありません") );
+		MessageBox( nullptr, TEXT("指定したボーン名がありません"), TEXT("Warning"), MB_OK );
 	}
 	FbxMatrix frameMatrix;
 	if( pAC == nullptr ){
 		if( m_pAc == nullptr ) return FbxMatrixConvertDXMMatrix( frameMatrix );
 		if( m_pAc->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
-			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
-			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+			_ASSERT_EXPR( false,  TEXT("メッシュ番号かボーン番号が合いません") );
+			MessageBox( nullptr,  TEXT("メッシュ番号かボーン番号が合いません"), TEXT("Warning"), MB_OK );
 		}
 	} else {
 		if( pAC->GetFrameLinkMatrix( meshNo, boneNo, &frameMatrix ) == false ){
-			_ASSERT_EXPR( false, "メッシュ番号かボーン番号が合いません" );
-			MessageBox( nullptr, "メッシュ番号かボーン番号が合いません", "Warning", MB_OK );
+			_ASSERT_EXPR( false,  TEXT("メッシュ番号かボーン番号が合いません") );
+			MessageBox( nullptr,  TEXT("メッシュ番号かボーン番号が合いません"), TEXT("Warning"), MB_OK );
 		}
 	}
 	// FbxMatrixをDirectXMatrixに変換して返す.

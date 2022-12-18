@@ -12,7 +12,6 @@
 CFbxModelLoader::CFbxModelLoader()
 	: m_pDevice11		( nullptr )
 	, m_pFbxManager		( nullptr )
-	, m_pFbxScene		( nullptr )
 	, m_MeshClusterData	()
 	, m_Skeletons		()
 {
@@ -31,8 +30,8 @@ HRESULT CFbxModelLoader::Create( ID3D11Device* pDevice )
 	// デバイスの取得.
 	//---------------------------------------------.
 	if( pDevice == nullptr ){
-		_ASSERT_EXPR( false, "デバイスの取得失敗" );
-		MessageBox( nullptr, "デバイスの取得失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("デバイスの取得失敗") );
+		MessageBox( nullptr, TEXT("デバイスの取得失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	m_pDevice11 = pDevice;
@@ -42,8 +41,8 @@ HRESULT CFbxModelLoader::Create( ID3D11Device* pDevice )
 	//---------------------------------------------.
 	m_pFbxManager = FbxManager::Create();
 	if( m_pFbxManager == nullptr ){
-		_ASSERT_EXPR( false, "FbxManager作成失敗" );
-		MessageBox( nullptr, "FbxManager作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxManager作成失敗") );
+		MessageBox( nullptr, TEXT("FbxManager作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
@@ -55,7 +54,6 @@ HRESULT CFbxModelLoader::Create( ID3D11Device* pDevice )
 //////////////////////////////////////////////////////////////////////.
 void CFbxModelLoader::Destroy()
 {
-	SAFE_DESTROY( m_pFbxScene );
 	SAFE_DESTROY( m_pFbxManager );
 
 	m_pDevice11 = nullptr;
@@ -69,10 +67,10 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	//---------------------------------------------.
 	// インポーターの作成.
 	//---------------------------------------------.
-	FbxImporter* pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
+	FbxImporter*	pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
 	if( pFbxImpoter == nullptr ){
-		_ASSERT_EXPR( false, "pFbxImpoter作成失敗" );
-		MessageBox( nullptr, "pFbxImpoter作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxImpoter作成失敗") );
+		MessageBox( nullptr, TEXT("FbxImpoter作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
@@ -82,33 +80,31 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// ファイル名の設定.
 	FbxString fbxFileName( fileName );
 	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
-		_ASSERT_EXPR( false, "Fbxファイルの読み込み" );
-		MessageBox( nullptr, "Fbxファイルの読み込み", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("Fbxファイルの読み込み失敗") );
+		MessageBox( nullptr, TEXT("Fbxファイルの読み込み失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
 	//---------------------------------------------.
 	// シーンオブジェクトの作成.
 	//---------------------------------------------.
-	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
-	if( m_pFbxScene == nullptr ){
-		_ASSERT_EXPR( false, "FbxSceneの作成失敗" );
-		MessageBox( nullptr, "FbxSceneの作成失敗", "Warning", MB_OK );
+	FbxScene* pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
+	if( pFbxScene == nullptr ){
+		_ASSERT_EXPR( false, TEXT("FbxSceneの作成失敗") );
+		MessageBox( nullptr, TEXT("FbxSceneの作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
 	//---------------------------------------------.
 	// インポーターとシーンオブジェクトの関連付け.
 	//---------------------------------------------.
-	if( pFbxImpoter->Import( m_pFbxScene ) == false ){
-		SAFE_DESTROY( m_pFbxManager );
-		SAFE_DESTROY( m_pFbxScene );
+	if( pFbxImpoter->Import( pFbxScene ) == false ){
+		SAFE_DESTROY( pFbxScene );
 		SAFE_DESTROY( pFbxImpoter );
-		_ASSERT_EXPR( false, "FbxSceneとFbxImpoterの関連付け失敗" );
-		MessageBox( nullptr, "FbxSceneとFbxImpoterの関連付け失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxSceneとFbxImpoterの関連付け失敗") );
+		MessageBox( nullptr, TEXT("FbxSceneとFbxImpoterの関連付け失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
-	SAFE_DESTROY( pFbxImpoter );
 
 
 	//---------------------------------------------.
@@ -118,18 +114,18 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	FbxGeometryConverter geometryConverter( m_pFbxManager );
 	// ポリゴンを三角形にする.
 	// 多角形ポリゴンがあれば作りなおすので時間がかかる.
-	convertReslut = geometryConverter.Triangulate( m_pFbxScene, true );
+	convertReslut = geometryConverter.Triangulate( pFbxScene, true );
 	if( convertReslut == false ){
-		_ASSERT_EXPR( false, "ポリゴンの三角化失敗" );
-		MessageBox( nullptr, "ポリゴンの三角化失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("ポリゴンの三角化失敗") );
+		MessageBox( nullptr, TEXT("ポリゴンの三角化失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
-	geometryConverter.RemoveBadPolygonsFromMeshes( m_pFbxScene );
+	geometryConverter.RemoveBadPolygonsFromMeshes( pFbxScene );
 	// メッシュをマテリアルごとに分割する.
-	convertReslut = geometryConverter.SplitMeshesPerMaterial( m_pFbxScene, true );
+	convertReslut = geometryConverter.SplitMeshesPerMaterial( pFbxScene, true );
 	if( convertReslut == false ){
-		_ASSERT_EXPR( false, "マテリアルごとのメッシュ分割失敗" );
-		MessageBox( nullptr, "マテリアルごとのメッシュ分割失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("マテリアルごとのメッシュ分割失敗") );
+		MessageBox( nullptr, TEXT("マテリアルごとのメッシュ分割失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
@@ -137,12 +133,12 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// FbxSkeletonの取得.
 	//---------------------------------------------.
 	// FbxSkeletonの数を取得.
-	int skeletonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
+	int skeletonNum = pFbxScene->GetSrcObjectCount<FbxSkeleton>();
 	int skeletonNo = 0;
 	m_Skeletons.resize( skeletonNum );
 	for( auto& s : m_Skeletons ){
 		// FbxSkeletonの取得.
-		s = m_pFbxScene->GetSrcObject<FbxSkeleton>(skeletonNo);
+		s = pFbxScene->GetSrcObject<FbxSkeleton>(skeletonNo);
 		skeletonNo++;
 	}
 
@@ -150,14 +146,14 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	// FbxMeshの取得.
 	//---------------------------------------------.
 	// FbxMeshの数を取得.
-	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();
+	int meshNum = pFbxScene->GetSrcObjectCount<FbxMesh>();
 	int meshNo = 0;
 	pModelData->ReSizeMeshData( meshNum );
 	for( auto& m : pModelData->GetMeshData() ){
 		// メッシュデータの取得.
-		FbxMesh* pMesh = m_pFbxScene->GetSrcObject<FbxMesh>(meshNo);
+		FbxMesh* pMesh = pFbxScene->GetSrcObject<FbxMesh>(meshNo);
 		// マテリアルの取得.
-		GetMaterial( pMesh, m, fileName, pModelData->GetTextures() );
+		GetMaterial( pMesh, m, fileName, pModelData );
 		// メッシュデータの読み込み.
 		LoadMesh( pMesh, m );
 		// 頂点バッファの作成.
@@ -174,7 +170,7 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	//---------------------------------------------.
 	CFbxAnimationLoader animLoader;		// アニメーション読み込みクラス.
 	SAnimationDataList	animDataList;	// アニメーションデータ.
-	animLoader.LoadAnimationData( m_pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
+	animLoader.LoadAnimationData( pFbxScene, m_MeshClusterData, m_Skeletons, &animDataList );
 	if( animDataList.AnimList.empty() == false ){
 		// 上で設定したアニメーションデータがあれば.
 		// アニメーションコントローラーを作成して.
@@ -187,13 +183,16 @@ HRESULT CFbxModelLoader::LoadModel( CFbxModel* pModelData, const char* fileName 
 	m_Skeletons.clear();
 	m_Skeletons.shrink_to_fit();
 
+	SAFE_DESTROY( pFbxScene );
+	SAFE_DESTROY( pFbxImpoter );
+
 	return S_OK;
 }
 
 //////////////////////////////////////////////////////////////////////.
 // マテリアル取得.
 //////////////////////////////////////////////////////////////////////.
-void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char* fileName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures )
+void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char* fileName, CFbxModel* pModelData )
 {
 	// マテリアル情報が無いので終了.
 	if( pMesh->GetElementMaterialCount() == 0 ) return;
@@ -249,28 +248,48 @@ void CFbxModelLoader::GetMaterial( FbxMesh* pMesh, FBXMeshData& mesh, const char
 		//---------------------------------------------.
 		// テクスチャ作成.
 		//---------------------------------------------.
-		FbxFileTexture* texture = nullptr;
-
-		// FbxFileTexture == シングルテクスチャ.
-		int textureCount = diffuse.GetSrcObjectCount<FbxFileTexture>();
-		if( textureCount > 0 ){
-			texture = diffuse.GetSrcObject<FbxFileTexture>(0);
-			mesh.UVSetCount = textureCount;
-		} else {
-			// マルチテクスチャ(レイヤーテクスチャ)の可能性があるので検索.
-			int layerCount = diffuse.GetSrcObjectCount<FbxLayeredTexture>();
-			if( layerCount > 0 ){
-				/******************************
-				マルチテクスチャの実装は後.
-				*******************************/
-				texture = diffuse.GetSrcObject<FbxFileTexture>(0);
-				mesh.UVSetCount = layerCount;
-			}
-		}
-		if( texture == nullptr ) return;
-		// テクスチャの読み込み.
-		if( FAILED( LoadTexture( texture, fileName, pMat->GetName(), textures ))) return;
+		LoadMaterialTexture( mesh, pMat, FbxSurfaceMaterial::sDiffuse, pModelData->GetDiffuseTextures(), fileName);
+		/***
+		* ノーマルマップ用などのテスクチャを読み込むには以下のようにすれば行えるが、
+		*  pModelData に専用のテクスチャリスト、描画周りを修正する必要がある。
+		**/
+		/*
+		LoadMaterialTexture( mesh, pMat, FbxSurfaceMaterial::sNormalMap, pModelData->GetNormalTextures(), fileName);
+		*/
+		
 	}
+}
+
+//////////////////////////////////////////////////////////////////////.
+// マテリアル用テクスチャの読み込み.
+//////////////////////////////////////////////////////////////////////.
+HRESULT CFbxModelLoader::LoadMaterialTexture( FBXMeshData& mesh, FbxSurfaceMaterial* pMat, const char* materialTypeName, std::unordered_map<std::string, ID3D11ShaderResourceView*>& textures, const char* fileName )
+{
+	//---------------------------------------------.
+	// テクスチャ作成.
+	//---------------------------------------------.
+	FbxProperty materialProperty = pMat->FindProperty( materialTypeName );
+	FbxFileTexture* texture = nullptr;
+
+	// FbxFileTexture == シングルテクスチャ.
+	int textureCount = materialProperty.GetSrcObjectCount<FbxFileTexture>();
+	if( textureCount > 0 ){
+		texture = materialProperty.GetSrcObject<FbxFileTexture>(0);
+	} else {
+		// マルチテクスチャ(レイヤーテクスチャ)の可能性があるので検索.
+		int layerCount = materialProperty.GetSrcObjectCount<FbxLayeredTexture>();
+		if( layerCount > 0 ){
+			/******************************
+			マルチテクスチャの実装は必要になれば.
+			*******************************/
+			//texture = materialProperty.GetSrcObject<FbxFileTexture>(0);
+		}
+	}
+	if( texture == nullptr ) return E_FAIL;
+	// テクスチャの読み込み.
+	if( FAILED( LoadTexture( texture, fileName, mesh.Material.Name.c_str(), textures ))) return E_FAIL;
+
+	return S_OK;
 }
 
 //////////////////////////////////////////////////////////////////////.
@@ -288,12 +307,10 @@ HRESULT CFbxModelLoader::LoadTexture( FbxFileTexture* texture, const char* fileN
 	if( textureName.length() == 0 ) textureName = texture->GetFileName();
 
 	// モデルのパスを使用し、モデルファイル名を削除しとく.
-	int pos = path.find_last_of('\\')+1;
-	path = path.substr( 0, pos );
+	path = path.substr( 0, path.find_last_of('\\')+1 );
 
 	// テクスチャのファイル名を取得する.
-	int texNamePos = textureName.find_last_of('\\')+1;
-	textureName = textureName.substr( texNamePos, textureName.length() );
+	textureName = textureName.substr( textureName.find_last_of('\\')+1, textureName.length() );
 	// ファイルパスと、テクスチャ名を合わせる.
 	path += textureName;
 
@@ -310,8 +327,8 @@ HRESULT CFbxModelLoader::LoadTexture( FbxFileTexture* texture, const char* fileN
 		wstr_file_name.c_str(),
 		nullptr,
 		&textures[keyName] ))){
-		_ASSERT_EXPR( false, "テクスチャ取得失敗" );
-		MessageBox( nullptr, "テクスチャ取得失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("テクスチャ取得失敗") );
+		MessageBox( nullptr, TEXT("テクスチャ取得失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
@@ -346,8 +363,8 @@ void CFbxModelLoader::LoadMesh( FbxMesh* pMesh, FBXMeshData& meshData )
 		int polygonSize = pMesh->GetPolygonSize(i);
 		if( polygonSize != 3 ){
 			// 三角ポリゴンじゃない.
-			_ASSERT_EXPR( false, "メッシュが三角じゃないです" );
-			MessageBox( nullptr, "メッシュが三角じゃないです", "Warning", MB_OK );
+			_ASSERT_EXPR( false, TEXT("三角ポリゴン以外が使用されています") );
+			MessageBox( nullptr, TEXT("三角ポリゴン以外が使用されています"), TEXT("Warning"), MB_OK );
 			return;
 		}
 
@@ -709,10 +726,10 @@ void CFbxModelLoader::SetBoneWeight( VERTEX& vertex, const std::vector<float>& w
 HRESULT CFbxModelLoader::CreateVertexBuffers( FBXMeshData& meshData )
 {
 	D3D11_BUFFER_DESC bd;
-	bd.ByteWidth = sizeof(VERTEX)*meshData.Vertices.size();
-	bd.Usage		= D3D11_USAGE_DYNAMIC;
-	bd.BindFlags	= D3D11_BIND_VERTEX_BUFFER;
-	bd.MiscFlags	= 0;
+	bd.ByteWidth			= (UINT)(sizeof(VERTEX)*meshData.Vertices.size());
+	bd.Usage				= D3D11_USAGE_DYNAMIC;
+	bd.BindFlags			= D3D11_BIND_VERTEX_BUFFER;
+	bd.MiscFlags			= 0;
 	bd.CPUAccessFlags		= D3D11_CPU_ACCESS_WRITE;
 	bd.StructureByteStride	= 0;
 	D3D11_SUBRESOURCE_DATA data;
@@ -722,8 +739,8 @@ HRESULT CFbxModelLoader::CreateVertexBuffers( FBXMeshData& meshData )
 
 	// 頂点バッファの作成.
 	if( FAILED( m_pDevice11->CreateBuffer( &bd, &data, &meshData.pVertexBuffer ))){
-		_ASSERT_EXPR( false, "頂点バッファの作成失敗" );
-		MessageBox( nullptr, "頂点バッファの作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("頂点バッファの作成失敗") );
+		MessageBox( nullptr, TEXT("頂点バッファの作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
@@ -735,10 +752,10 @@ HRESULT CFbxModelLoader::CreateVertexBuffers( FBXMeshData& meshData )
 HRESULT CFbxModelLoader::CreateIndexBuffers( FBXMeshData& meshData )
 {
 	D3D11_BUFFER_DESC bd;
-	bd.ByteWidth = sizeof(int)*meshData.Indices.size();
-	bd.Usage		= D3D11_USAGE_DEFAULT;
-	bd.BindFlags	= D3D11_BIND_INDEX_BUFFER;
-	bd.MiscFlags	= 0;
+	bd.ByteWidth			= (UINT)(sizeof(int)*meshData.Indices.size());
+	bd.Usage				= D3D11_USAGE_DEFAULT;
+	bd.BindFlags			= D3D11_BIND_INDEX_BUFFER;
+	bd.MiscFlags			= 0;
 	bd.CPUAccessFlags		= 0;
 	bd.StructureByteStride	= 0;
 	D3D11_SUBRESOURCE_DATA data;
@@ -748,8 +765,8 @@ HRESULT CFbxModelLoader::CreateIndexBuffers( FBXMeshData& meshData )
 
 	// インデックスバッファの作成.
 	if( FAILED( m_pDevice11->CreateBuffer( &bd, &data, &meshData.pIndexBuffer ))){
-		_ASSERT_EXPR( false, "インデックスバッファの作成失敗" );
-		MessageBox( nullptr, "インデックスバッファの作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("インデックスバッファの作成失敗") );
+		MessageBox( nullptr, TEXT("インデックスバッファの作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 	return S_OK;
@@ -786,8 +803,7 @@ void CFbxModelLoader::WritingBoneNameList( std::map<std::string, std::pair<int, 
 	
 	std::string filePath = fileName;
 	// モデルのパスを使用し、拡張子を削除しとく.
-	int pos = filePath.find_last_of('.')+1;
-	filePath = filePath.substr( 0, pos-1 );
+	filePath = filePath.substr( 0, filePath.find_last_of('.') );
 	filePath += "_BoneList.txt";	// 追加でファイル名と、拡張子を追加.
 
 	// ファイルを開く.

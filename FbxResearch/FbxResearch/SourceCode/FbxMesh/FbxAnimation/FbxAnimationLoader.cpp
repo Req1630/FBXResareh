@@ -5,7 +5,6 @@
 
 CFbxAnimationLoader::CFbxAnimationLoader()
 	: m_pFbxManager		( nullptr )
-	, m_pFbxScene		( nullptr )
 	, m_MeshClusterData	()
 	, m_AnimDataList	()
 	, m_Skeletons		()
@@ -26,17 +25,8 @@ HRESULT CFbxAnimationLoader::Create()
 	//------------------------------.
 	m_pFbxManager = FbxManager::Create();
 	if( m_pFbxManager == nullptr ){
-		_ASSERT_EXPR( false, "FbxManager作成失敗" );
-		MessageBox( nullptr, "FbxManager作成失敗", "Warning", MB_OK );
-		return E_FAIL;
-	}
-	//------------------------------.
-	// シーンオブジェクトの作成.
-	//------------------------------.
-	m_pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
-	if( m_pFbxScene == nullptr ){
-		_ASSERT_EXPR( false, "FbxScene作成失敗" );
-		MessageBox( nullptr, "FbxScene作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxManager作成失敗") );
+		MessageBox( nullptr, TEXT("FbxManager作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
@@ -48,7 +38,6 @@ HRESULT CFbxAnimationLoader::Create()
 ////////////////////////////////////////////////////////////////.
 void CFbxAnimationLoader::Destroy()
 {
-	SAFE_DESTROY( m_pFbxScene );
 	SAFE_DESTROY( m_pFbxManager );
 }
 
@@ -62,8 +51,8 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	//------------------------------.
 	FbxImporter* pFbxImpoter = FbxImporter::Create( m_pFbxManager, "imp" );
 	if( pFbxImpoter == nullptr ){
-		_ASSERT_EXPR( false, "FbxImporter作成失敗" );
-		MessageBox( nullptr, "FbxImporter作成失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxImporter作成失敗") );
+		MessageBox( nullptr, TEXT("FbxImporter作成失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
@@ -73,46 +62,39 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	// ファイル名の設定.
 	FbxString fbxFileName( fileName );
 	if( pFbxImpoter->Initialize( fbxFileName.Buffer() ) == false ){
-		_ASSERT_EXPR( false, "Fbxファイル読み込み失敗" );
-		MessageBox( nullptr, "Fbxファイル読み込み失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("Fbxファイル読み込み失敗") );
+		MessageBox( nullptr, TEXT("Fbxファイル読み込み失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
 
 	//------------------------------.
 	// インポーターとシーンオブジェクトの関連付け.
 	//------------------------------.
-	if( pFbxImpoter->Import( m_pFbxScene ) == false ){
-		SAFE_DESTROY( m_pFbxManager );
-		SAFE_DESTROY( m_pFbxScene );
+	//------------------------------.
+	// シーンオブジェクトの作成.
+	//------------------------------.
+	FbxScene*	pFbxScene = FbxScene::Create( m_pFbxManager, "fbxScene" );
+	if( pFbxScene == nullptr ){
+		_ASSERT_EXPR( false, TEXT("FbxScene作成失敗") );
+		MessageBox( nullptr, TEXT("FbxScene作成失敗"), TEXT("Warning"), MB_OK );
+		return E_FAIL;
+	}
+	if( pFbxImpoter->Import( pFbxScene ) == false ){
+		SAFE_DESTROY( pFbxScene );
 		SAFE_DESTROY( pFbxImpoter );
-		_ASSERT_EXPR( false, "FbxImpoterとFbxSceneの関連付け失敗" );
-		MessageBox( nullptr, "FbxImpoterとFbxSceneの関連付け失敗", "Warning", MB_OK );
+		_ASSERT_EXPR( false, TEXT("FbxImpoterとFbxSceneの関連付け失敗") );
+		MessageBox( nullptr, TEXT("FbxImpoterとFbxSceneの関連付け失敗"), TEXT("Warning"), MB_OK );
 		return E_FAIL;
 	}
-
-	//---------------------------------------------.
-	// ポリゴンの設定.
-	//---------------------------------------------.
-	bool convertReslut = false;
-	FbxGeometryConverter geometryConverter( m_pFbxManager );
-	// ポリゴンを三角形にする.
-	// 多角形ポリゴンがあれば作りなおすので時間がかかる.
-	convertReslut = geometryConverter.Triangulate( m_pFbxScene, true );
-	if( convertReslut == false ){
-		_ASSERT_EXPR( false, "ポリゴンの三角化失敗" );
-		MessageBox( nullptr, "ポリゴンの三角化失敗", "Warning", MB_OK );
-		return E_FAIL;
-	}
-	geometryConverter.RemoveBadPolygonsFromMeshes( m_pFbxScene );
 
 	//-----------------------------------.
 	// FbxSkeletonの数を取得.
 	//-----------------------------------.
 	// FbxSkeletonを取得.
-	int skeltonNum = m_pFbxScene->GetSrcObjectCount<FbxSkeleton>();
+	int skeltonNum = pFbxScene->GetSrcObjectCount<FbxSkeleton>();
 	m_Skeletons.resize( skeltonNum );
 	for( int i = 0; i < skeltonNum; i++ ){
-		m_Skeletons[i] = m_pFbxScene->GetSrcObject<FbxSkeleton>(i);
+		m_Skeletons[i] = pFbxScene->GetSrcObject<FbxSkeleton>(i);
 		m_Skeletons[i]->GetNode()->GetAnimationEvaluator();
 	}
 
@@ -120,15 +102,15 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	// FbxMeshの数を取得.
 	//-----------------------------------.
 	// FbxMeshを取得.
-	int meshNum = m_pFbxScene->GetSrcObjectCount<FbxMesh>();	
+	int meshNum = pFbxScene->GetSrcObjectCount<FbxMesh>();	
 	m_MeshClusterData.resize( meshNum );
 	for( int i = 0; i < meshNum; i++ ){
-		LoadSkin( m_pFbxScene->GetSrcObject<FbxMesh>(i), m_MeshClusterData[i] );
+		LoadSkin( pFbxScene->GetSrcObject<FbxMesh>(i), m_MeshClusterData[i] );
 	}
 	//-----------------------------------.
 	//	アニメーションフレームの取得.
 	//-----------------------------------.
-	GetAnimationFrame( m_pFbxScene );
+	GetAnimationFrame( pFbxScene );
 
 	// アニメーションデータが空じゃなければリストを追加.
 	if( m_AnimDataList.AnimList.empty() == false ){
@@ -141,7 +123,7 @@ HRESULT CFbxAnimationLoader::LoadAnim( SAnimationDataList* outAnimDataList, cons
 	m_MeshClusterData.clear();
 	m_MeshClusterData.shrink_to_fit();
 
-	// インポーターの解放.
+	SAFE_DESTROY( pFbxScene );
 	SAFE_DESTROY( pFbxImpoter );
 
 	return S_OK;
@@ -282,8 +264,7 @@ void CFbxAnimationLoader::GetAnimationFrameMatrix( SAnimationData& animData, Fbx
 			if( std::find( animSkelton.ClusterName.begin(), animSkelton.ClusterName.end(), 
 				skeletonNode->GetName() ) == animSkelton.ClusterName.end() ) continue;
 
-			int numOfBones = animSkelton.ClusterName.size();
-			if( numOfBones <= 0 ) continue;
+			if( animSkelton.ClusterName.size() <= 0 ) continue;
 
 			std::map<double, FbxMatrix> keyFrame;
 

@@ -76,5 +76,5 @@ void ERROR_MESSAGE ( const std::string& error )
 
 	CLog::Print( error );
 	_ASSERT_EXPR( false, wstrTo.c_str() );
-	MessageBox( nullptr, error.c_str(), "Warning", MB_OK );
+	MessageBox( nullptr, wstrTo.c_str(), TEXT("Warning"), MB_OK );
 }
