@@ -1,7 +1,10 @@
 #pragma once
 
-//警告についてのｺｰﾄﾞ分析を無効にする.4005:再定義.
+// 警告についてのコード分析を無効にする.4005:再定義.
 #pragma warning(disable:4005)
+// pdbファイルが見つからない警告を無効にする.
+#pragma warning(disable:4099)
+
 #define _CRTDBG_MAP_ALLOC
 #include <Windows.h>
 #include <crtdbg.h>

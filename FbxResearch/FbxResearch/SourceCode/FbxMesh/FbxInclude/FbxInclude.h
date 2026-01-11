@@ -10,15 +10,21 @@
 // MD, MDd.
 #if _DEBUG
 #pragma comment( lib, "debug\\libfbxsdk-md.lib" )
-#else
-#pragma comment( lib, "release\\libfbxsdk-md.lib" )
-#endif	// #if _DEBUG.
-
 /***********************************
 ↓ FBXSDK ver.2019-1 以降で仕様.
 ******/
-//#pragma comment( lib, "libxml2-md.lib" )
-//#pragma comment( lib, "zlib-md.lib" )
+#pragma comment( lib, "debug\\alembic-md.lib" )
+#pragma comment( lib, "debug\\libxml2-md.lib" )
+#pragma comment( lib, "debug\\zlib-md.lib" )
+#else
+#pragma comment( lib, "release\\libfbxsdk-md.lib" )
+/***********************************
+↓ FBXSDK ver.2019-1 以降で仕様.
+******/
+#pragma comment( lib, "release\\alembic-md.lib" )
+#pragma comment( lib, "release\\libxml2-md.lib" )
+#pragma comment( lib, "release\\zlib-md.lib" )
+#endif	// #if _DEBUG.
 
 #else
 
